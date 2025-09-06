@@ -546,47 +546,7 @@
         .nice { color: #ffa500; text-shadow: 0 0 20px #ffa500; }
         .miss { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
 
-        /* タッチ操作用コントロール */
-        .touch-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            z-index: 2000;
-            flex-direction: row;
-            gap: 10px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 15px;
-            border: 2px solid #00ffff;
-        }
-
-        .touch-arrow {
-            width: 80px;
-            height: 80px;
-            border: 3px solid;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .touch-arrow:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .touch-arrow.left { border-color: #ff4757; color: #ff4757; }
-        .touch-arrow.down { border-color: #3742fa; color: #3742fa; }
-        .touch-arrow.up { border-color: #2ed573; color: #2ed573; }
-        .touch-arrow.right { border-color: #ffa502; color: #ffa502; }
+        /* タッチコントロールは削除 - ターゲットエリア直接タップを使用 */
 
         /* レスポンシブデザイン - タブレット */
         @media screen and (max-width: 1024px) {
@@ -726,15 +686,7 @@
                 display: none; /* スマホではキーボード操作説明を非表示 */
             }
             
-            .touch-controls {
-                display: none; /* ターゲットエリアタップを優先するため非表示 */
-            }
-            
-            .touch-arrow {
-                width: 70px;
-                height: 70px;
-                font-size: 35px;
-            }
+            /* タッチコントロール関連は削除済み */
         }
 
         /* 極小スマートフォン */
@@ -791,11 +743,7 @@
                 font-size: 30px;
             }
             
-            .touch-arrow {
-                width: 60px;
-                height: 60px;
-                font-size: 30px;
-            }
+            /* タッチコントロール関連は削除済み */
             
             .judgment {
                 font-size: 24px;
@@ -840,16 +788,7 @@
                 min-width: 100px;
             }
             
-            .touch-controls {
-                bottom: 10px;
-                padding: 10px;
-            }
-            
-            .touch-arrow {
-                width: 50px;
-                height: 50px;
-                font-size: 25px;
-            }
+            /* タッチコントロール関連は削除済み */
             
             .target-area {
                 bottom: 80px;
@@ -1050,13 +989,7 @@
             <div>ESC: メニューに戻る</div>
         </div>
 
-        <!-- タッチコントロール（スマホ・タブレット用） -->
-        <div class="touch-controls" id="touch-controls">
-            <div class="touch-arrow left" data-direction="left">←</div>
-            <div class="touch-arrow down" data-direction="down">↓</div>
-            <div class="touch-arrow up" data-direction="up">↑</div>
-            <div class="touch-arrow right" data-direction="right">→</div>
-        </div>
+        <!-- タッチコントロールは削除 - ターゲットエリア直接タップを使用 -->
     </div>
 
     <audio id="game-audio" preload="auto"></audio>

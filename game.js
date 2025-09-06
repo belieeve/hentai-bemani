@@ -266,37 +266,7 @@ class DDRGame {
             });
         });
         
-        // 従来の下部タッチコントロール（バックアップとして残す）
-        const touchArrows = document.querySelectorAll('.touch-arrow');
-        
-        touchArrows.forEach(arrow => {
-            const direction = arrow.getAttribute('data-direction');
-            
-            arrow.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.handleTouchStart(direction, arrow);
-            });
-            
-            arrow.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                this.handleTouchStart(direction, arrow);
-            });
-            
-            arrow.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.handleTouchEnd(direction, arrow);
-            });
-            
-            arrow.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.handleTouchEnd(direction, arrow);
-            });
-            
-            arrow.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                this.handleTouchEnd(direction, arrow);
-            });
-        });
+        // タッチコントロールは削除 - ターゲットエリア直接タップのみ使用
     }
     
     handleTargetTouch(direction, targetElement, laneIndex) {
@@ -317,27 +287,7 @@ class DDRGame {
         targetElement.style.boxShadow = '0 0 20px #00ffff';
     }
     
-    handleTouchStart(direction, element) {
-        if (!this.isPlaying) return;
-        
-        // タッチ用の処理（音なし）
-        const laneMap = {
-            'left': 0,
-            'down': 1, 
-            'up': 2,
-            'right': 3
-        };
-        
-        const laneIndex = laneMap[direction];
-        
-        // ノーツヒット処理（音効果なし）
-        this.processTouchHit(laneIndex);
-        this.addVisualFeedback(laneIndex);
-        
-        // ボタンの視覚的フィードバック
-        element.style.background = 'rgba(255, 255, 255, 0.5)';
-        element.style.transform = 'scale(0.9)';
-    }
+    // 旧タッチ処理関数は削除 - ターゲットエリア直接タップを使用
     
     processTouchHit(laneIndex) {
         const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
@@ -460,11 +410,7 @@ class DDRGame {
         this.updateUI();
     }
     
-    handleTouchEnd(direction, element) {
-        // 視覚的フィードバックをリセット
-        element.style.background = 'rgba(0, 0, 0, 0.3)';
-        element.style.transform = 'scale(1)';
-    }
+    // 旧タッチ終了処理も削除済み
     
     generateBeatmap() {
         if (!this.selectedDifficulty) {
