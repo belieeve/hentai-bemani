@@ -89,6 +89,7 @@ class DDRGame {
         this.selectedDifficulty = null;
         
         this.setupEventListeners();
+        this.setupTouchControls();
         this.generateSongList();
     }
     
@@ -226,6 +227,69 @@ class DDRGame {
         
         this.audio.addEventListener('ended', () => this.endGame());
         this.audio.addEventListener('timeupdate', () => this.updateGame());
+    }
+    
+    setupTouchControls() {
+        // タッチコントロールのイベントリスナー設定
+        const touchArrows = document.querySelectorAll('.touch-arrow');
+        
+        touchArrows.forEach(arrow => {
+            const direction = arrow.getAttribute('data-direction');
+            
+            // タッチ開始
+            arrow.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // スクロール防止
+                this.handleTouchStart(direction, arrow);
+            });
+            
+            // マウスクリック（デバッグ用・PC）
+            arrow.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.handleTouchStart(direction, arrow);
+            });
+            
+            // タッチ終了
+            arrow.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.handleTouchEnd(direction, arrow);
+            });
+            
+            arrow.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.handleTouchEnd(direction, arrow);
+            });
+            
+            // タッチキャンセル
+            arrow.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.handleTouchEnd(direction, arrow);
+            });
+        });
+    }
+    
+    handleTouchStart(direction, element) {
+        if (!this.isPlaying) return;
+        
+        // キーボードイベントと同じ処理を呼び出し
+        const keyMap = {
+            'left': 'ArrowLeft',
+            'down': 'ArrowDown', 
+            'up': 'ArrowUp',
+            'right': 'ArrowRight'
+        };
+        
+        const keyEvent = { key: keyMap[direction] };
+        this.handleKeyPress(keyEvent);
+        
+        // 視覚的フィードバック
+        element.style.background = 'rgba(255, 255, 255, 0.5)';
+        element.style.transform = 'scale(0.9)';
+    }
+    
+    handleTouchEnd(direction, element) {
+        // 視覚的フィードバックをリセット
+        element.style.background = 'rgba(0, 0, 0, 0.3)';
+        element.style.transform = 'scale(1)';
     }
     
     generateBeatmap() {
@@ -428,6 +492,9 @@ class DDRGame {
         this.startTime = performance.now();
         this.updateUI();
         
+        // タッチコントロールを表示（モバイルデバイスの場合）
+        this.showTouchControls();
+        
         // 音楽を再生（可能な場合）
         if (this.audio.src && !this.audio.error) {
             try {
@@ -440,6 +507,27 @@ class DDRGame {
         
         console.log('=== Starting game loop ===');
         this.gameLoop();
+    }
+    
+    showTouchControls() {
+        const touchControls = document.getElementById('touch-controls');
+        if (touchControls) {
+            // モバイルデバイス判定
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            ('ontouchstart' in window) || 
+                            (navigator.maxTouchPoints > 0);
+            
+            if (isMobile) {
+                touchControls.style.display = 'flex';
+            }
+        }
+    }
+    
+    hideTouchControls() {
+        const touchControls = document.getElementById('touch-controls');
+        if (touchControls) {
+            touchControls.style.display = 'none';
+        }
     }
     
     generateBeatmapFromAudio() {
@@ -1047,6 +1135,7 @@ class DDRGame {
         this.audio.currentTime = 0;
         
         this.gameArea.classList.add('hidden');
+        this.hideTouchControls(); // タッチコントロールを隠す
         this.showTopScreen();
         
         // ノーツをクリア

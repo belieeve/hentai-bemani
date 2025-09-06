@@ -16,6 +16,12 @@
             background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
             color: white;
             overflow: hidden;
+            /* モバイル向けの追加設定 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .game-container {
@@ -532,6 +538,317 @@
         .nice { color: #ffa500; text-shadow: 0 0 20px #ffa500; }
         .miss { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
 
+        /* タッチ操作用コントロール */
+        .touch-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 2000;
+            flex-direction: row;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            border: 2px solid #00ffff;
+        }
+
+        .touch-arrow {
+            width: 80px;
+            height: 80px;
+            border: 3px solid;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .touch-arrow:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .touch-arrow.left { border-color: #ff4757; color: #ff4757; }
+        .touch-arrow.down { border-color: #3742fa; color: #3742fa; }
+        .touch-arrow.up { border-color: #2ed573; color: #2ed573; }
+        .touch-arrow.right { border-color: #ffa502; color: #ffa502; }
+
+        /* レスポンシブデザイン - タブレット */
+        @media screen and (max-width: 1024px) {
+            .game-title {
+                font-size: 36px;
+            }
+            
+            .song-list {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                max-height: 350px;
+            }
+            
+            .level-buttons-container {
+                gap: 20px;
+            }
+            
+            .level-btn {
+                padding: 20px 30px;
+                font-size: 18px;
+                min-width: 120px;
+            }
+            
+            .lane {
+                width: 100px;
+            }
+            
+            .note {
+                width: 70px;
+                height: 70px;
+                font-size: 45px;
+                left: 15px;
+            }
+        }
+
+        /* レスポンシブデザイン - スマートフォン */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            .header {
+                padding: 10px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .score-display, .combo-display, .accuracy-display {
+                font-size: 16px;
+            }
+            
+            .hp-bar {
+                width: 150px;
+                height: 16px;
+            }
+            
+            .hp-label, .hp-text {
+                font-size: 14px;
+            }
+            
+            .game-title {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            
+            .game-subtitle {
+                font-size: 18px;
+                margin-bottom: 30px;
+            }
+            
+            .main-btn {
+                padding: 15px 30px;
+                font-size: 20px;
+                margin: 15px;
+            }
+            
+            .song-list {
+                grid-template-columns: 1fr;
+                max-height: 300px;
+                margin: 15px 0;
+            }
+            
+            .song-item {
+                padding: 12px;
+            }
+            
+            .song-title {
+                font-size: 16px;
+            }
+            
+            .song-info {
+                font-size: 12px;
+            }
+            
+            .level-selection-title {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+            
+            .level-buttons-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+            
+            .level-btn {
+                padding: 18px 25px;
+                font-size: 16px;
+                min-width: 200px;
+                max-width: 250px;
+            }
+            
+            .lane {
+                width: 80px;
+            }
+            
+            .note {
+                width: 60px;
+                height: 60px;
+                font-size: 35px;
+                left: 10px;
+            }
+            
+            .target-area {
+                height: 70px;
+                bottom: 120px;
+            }
+            
+            .arrow-target {
+                font-size: 35px;
+            }
+            
+            .judgment {
+                font-size: 28px;
+            }
+            
+            .controls-info {
+                display: none; /* スマホではキーボード操作説明を非表示 */
+            }
+            
+            .touch-controls {
+                display: flex; /* スマホではタッチコントロールを表示 */
+            }
+            
+            .touch-arrow {
+                width: 70px;
+                height: 70px;
+                font-size: 35px;
+            }
+        }
+
+        /* 極小スマートフォン */
+        @media screen and (max-width: 480px) {
+            .header {
+                padding: 8px;
+            }
+            
+            .score-display, .combo-display, .accuracy-display {
+                font-size: 14px;
+            }
+            
+            .hp-bar {
+                width: 120px;
+                height: 14px;
+            }
+            
+            .game-title {
+                font-size: 24px;
+            }
+            
+            .game-subtitle {
+                font-size: 16px;
+            }
+            
+            .main-btn {
+                padding: 12px 24px;
+                font-size: 18px;
+            }
+            
+            .level-btn {
+                padding: 15px 20px;
+                font-size: 14px;
+                min-width: 180px;
+            }
+            
+            .lane {
+                width: 70px;
+            }
+            
+            .note {
+                width: 50px;
+                height: 50px;
+                font-size: 30px;
+                left: 10px;
+            }
+            
+            .target-area {
+                height: 60px;
+                bottom: 140px;
+            }
+            
+            .arrow-target {
+                font-size: 30px;
+            }
+            
+            .touch-arrow {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .judgment {
+                font-size: 24px;
+            }
+        }
+
+        /* ランドスケープモード（横向き）対応 */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 5px 15px;
+            }
+            
+            .screen {
+                padding: 20px;
+                height: calc(100vh - 80px);
+            }
+            
+            .game-title {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            .game-subtitle {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            
+            .main-btn {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin: 10px;
+            }
+            
+            .level-buttons-container {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .level-btn {
+                padding: 12px 18px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+            
+            .touch-controls {
+                bottom: 10px;
+                padding: 10px;
+            }
+            
+            .touch-arrow {
+                width: 50px;
+                height: 50px;
+                font-size: 25px;
+            }
+            
+            .target-area {
+                bottom: 80px;
+                height: 50px;
+            }
+        }
+
         .controls-info {
             position: absolute;
             bottom: 20px;
@@ -722,6 +1039,14 @@
         <div class="controls-info">
             <div>操作: ← ↓ ↑ → キーを使用</div>
             <div>ESC: メニューに戻る</div>
+        </div>
+
+        <!-- タッチコントロール（スマホ・タブレット用） -->
+        <div class="touch-controls" id="touch-controls">
+            <div class="touch-arrow left" data-direction="left">←</div>
+            <div class="touch-arrow down" data-direction="down">↓</div>
+            <div class="touch-arrow up" data-direction="up">↑</div>
+            <div class="touch-arrow right" data-direction="right">→</div>
         </div>
     </div>
 
