@@ -1216,7 +1216,8 @@ function startGame() {
 
 // デバッグ情報とテスト関数
 console.log('DDR Rhythm Game が読み込まれました！');
-console.log('ファイルバージョン: 2024-09-06-v2');
+console.log('ファイルバージョン: 2024-09-07-mobile-v1');
+console.log('モバイル・タブレット完全対応版');
 
 // テスト関数
 function testNoteCreation() {
