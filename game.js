@@ -3,6 +3,7 @@ class DDRGame {
         this.audio = document.getElementById('game-audio');
         this.gameArea = document.getElementById('game-area');
         this.topScreen = document.getElementById('top-screen');
+        this.songSelectScreen = document.getElementById('song-select-screen');
         this.levelSelectScreen = document.getElementById('level-select-screen');
         this.gameOverScreen = document.getElementById('game-over-screen');
         
@@ -61,14 +62,69 @@ class DDRGame {
             }
         };
         
-        this.selectedSong = {
-            filename: 'hentaisong.mp3',
-            title: 'hentaisong',
-            path: 'assets/audio/hentaisong.mp3'
-        };
+        // 楽曲リスト - 新しい曲を追加する場合はここに追加
+        this.songList = [
+            {
+                id: 1,
+                filename: 'hentaisong.mp3',
+                title: '3:05の変態たち feat. 眠気',
+                artist: 'believeee',
+                path: 'assets/audio/hentaisong.mp3',
+                bpm: 140,
+                duration: 180
+            }
+            // 新しい曲を追加する場合の例：
+            // {
+            //     id: 2,
+            //     filename: 'newsong.mp3',
+            //     title: '新しい曲',
+            //     artist: 'アーティスト名',
+            //     path: 'assets/audio/newsong.mp3',
+            //     bpm: 128,
+            //     duration: 200
+            // }
+        ];
+        
+        this.selectedSong = null;
         this.selectedDifficulty = null;
         
         this.setupEventListeners();
+        this.generateSongList();
+    }
+    
+    generateSongList() {
+        const container = document.getElementById('song-list-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        this.songList.forEach(song => {
+            const songItem = document.createElement('div');
+            songItem.className = 'song-item';
+            songItem.innerHTML = `
+                <div class="song-title">${song.title}</div>
+                <div class="song-info">${song.artist} | BPM: ${song.bpm}</div>
+            `;
+            
+            songItem.addEventListener('click', () => {
+                // 以前の選択を解除
+                document.querySelectorAll('.song-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                // 新しい選択を設定
+                songItem.classList.add('selected');
+                this.selectedSong = song;
+                console.log('Selected song:', song.title);
+            });
+            
+            container.appendChild(songItem);
+        });
+    }
+    
+    showSongSelect() {
+        this.topScreen.classList.add('hidden');
+        this.songSelectScreen.classList.remove('hidden');
     }
     
     setupSoundEffects() {
@@ -231,12 +287,29 @@ class DDRGame {
     }
     
     showLevelSelect() {
-        this.topScreen.classList.add('hidden');
+        if (!this.selectedSong) {
+            alert('楽曲を選択してください');
+            return;
+        }
+        
+        // 選択された楽曲のタイトルを表示
+        const titleElement = document.getElementById('selected-song-title');
+        if (titleElement) {
+            titleElement.textContent = this.selectedSong.title;
+        }
+        
+        this.songSelectScreen.classList.add('hidden');
         this.levelSelectScreen.classList.remove('hidden');
+    }
+    
+    backToSongSelect() {
+        this.levelSelectScreen.classList.add('hidden');
+        this.songSelectScreen.classList.remove('hidden');
     }
     
     showTopScreen() {
         this.topScreen.classList.remove('hidden');
+        this.songSelectScreen.classList.add('hidden');
         this.levelSelectScreen.classList.add('hidden');
         this.gameArea.classList.add('hidden');
     }
@@ -1015,10 +1088,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // グローバル関数
+function showSongSelect() {
+    console.log('showSongSelect called, game:', game);
+    if (game) {
+        game.showSongSelect();
+    }
+}
+
 function showLevelSelect() {
     console.log('showLevelSelect called, game:', game);
     if (game) {
         game.showLevelSelect();
+    }
+}
+
+function backToSongSelect() {
+    console.log('backToSongSelect called, game:', game);
+    if (game) {
+        game.backToSongSelect();
     }
 }
 

@@ -622,12 +622,22 @@
         <div class="screen top-screen" id="top-screen">
             <div class="game-title">DDR RHYTHM GAME</div>
             <div class="game-subtitle">音楽に合わせて矢印キーをタイミングよく押そう！</div>
-            <button class="main-btn" onclick="showLevelSelect()">ゲームスタート</button>
+            <button class="main-btn" onclick="showSongSelect()">ゲームスタート</button>
+        </div>
+
+        <!-- 楽曲選択スクリーン -->
+        <div class="screen level-select-screen hidden" id="song-select-screen">
+            <div class="level-selection-title">楽曲選択</div>
+            <div class="game-subtitle">プレイする楽曲を選択してください</div>
+            <div class="song-list" id="song-list-container">
+                <!-- 楽曲リストはJavaScriptで動的に生成 -->
+            </div>
+            <button class="main-btn" onclick="showLevelSelect()">次へ</button>
         </div>
 
         <!-- レベル選択スクリーン -->
         <div class="screen level-select-screen hidden" id="level-select-screen">
-            <div class="level-selection-title">hentaisong.mp3</div>
+            <div class="level-selection-title" id="selected-song-title">楽曲を選択してください</div>
             <div class="game-subtitle">難易度を選択してください</div>
             <div class="level-buttons-container">
                 <div class="level-btn easy" onclick="selectLevelAndStart('easy')">
@@ -643,6 +653,7 @@
                     <div class="level-description">上級者向け</div>
                 </div>
             </div>
+            <button class="main-btn" onclick="backToSongSelect()">楽曲選択に戻る</button>
         </div>
 
         <div class="game-area hidden" id="game-area">
