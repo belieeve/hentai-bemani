@@ -329,7 +329,11 @@ class DDRGame {
     
     cleanupNotes() {
         this.activeNotes = this.activeNotes.filter(note => {
-            if (note.element && note.element.offsetTop > window.innerHeight) {
+            // ノーツがターゲットエリア（画面下部）を通り過ぎた場合
+            const targetAreaBottom = window.innerHeight - 20; // ターゲットエリアのbottom位置
+            const noteBottom = note.element.offsetTop + note.element.offsetHeight;
+            
+            if (note.element && noteBottom > targetAreaBottom + 100) { // 100pxの余裕を持たせる
                 if (!note.hit) {
                     this.processMiss();
                 }
@@ -361,32 +365,52 @@ class DDRGame {
     
     processHit(laneIndex) {
         const currentTime = this.audio.currentTime;
+        
+        // ターゲットエリア内のノーツのみを対象にする
+        const targetAreaTop = window.innerHeight - 140; // ターゲットエリア上端
+        const targetAreaBottom = window.innerHeight - 20; // ターゲットエリア下端
+        
         const targetNotes = this.activeNotes.filter(note => 
-            note.lane === laneIndex && !note.hit
+            note.lane === laneIndex && 
+            !note.hit && 
+            note.element &&
+            note.element.offsetTop >= targetAreaTop - 100 && // 少し余裕を持たせる
+            note.element.offsetTop <= targetAreaBottom + 50
         );
         
         if (targetNotes.length === 0) return;
         
-        // 最も近いノーツを見つける
+        // 最もターゲットエリアに近いノーツを見つける
         let closestNote = null;
-        let minTimeDiff = Infinity;
+        let minDistance = Infinity;
+        
+        const targetCenter = targetAreaTop + (targetAreaBottom - targetAreaTop) / 2;
         
         targetNotes.forEach(note => {
-            const timeDiff = Math.abs(note.time - currentTime);
-            if (timeDiff < minTimeDiff) {
-                minTimeDiff = timeDiff;
+            const noteCenter = note.element.offsetTop + note.element.offsetHeight / 2;
+            const distance = Math.abs(noteCenter - targetCenter);
+            if (distance < minDistance) {
+                minDistance = distance;
                 closestNote = note;
             }
         });
         
         if (!closestNote) return;
         
-        const timingWindow = this.getTimingWindow(minTimeDiff);
+        // 位置ベースのタイミング判定
+        const timingWindow = this.getPositionTimingWindow(minDistance);
         if (timingWindow) {
             closestNote.hit = true;
             closestNote.element.remove();
             this.processTimingHit(timingWindow);
         }
+    }
+    
+    getPositionTimingWindow(distance) {
+        if (distance <= 20) return 'perfect';
+        if (distance <= 40) return 'great';
+        if (distance <= 60) return 'good';
+        return null;
     }
     
     getTimingWindow(timeDiff) {
