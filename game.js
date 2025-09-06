@@ -76,37 +76,87 @@ class DDRGame {
     }
     
     setupMobileControls() {
-        // モバイル検出
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        // より確実なモバイル検出
+        const isMobile = this.detectMobile();
+        const mobileControls = document.getElementById('mobile-controls');
         
-        if (isMobile) {
-            const mobileControls = document.getElementById('mobile-controls');
-            if (mobileControls) {
-                // ゲーム中のみ表示
-                this.mobileControls = mobileControls;
+        if (mobileControls) {
+            this.mobileControls = mobileControls;
+            
+            if (isMobile) {
+                console.log('Mobile device detected, touch controls will be available');
             }
         }
         
-        // タッチイベントリスナー
+        // タッチイベントリスナーを設定
+        this.setupTouchEvents();
+    }
+    
+    detectMobile() {
+        // 複数の条件でモバイルデバイスを検出
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const smallScreen = window.innerWidth <= 768;
+        
+        return mobileRegex.test(userAgent) || hasTouch || smallScreen;
+    }
+    
+    setupTouchEvents() {
         document.querySelectorAll('.mobile-control-btn').forEach(btn => {
+            // タッチスタート
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const key = btn.getAttribute('data-key');
                 this.handleKeyPress({ key: key });
-                btn.style.background = 'rgba(0, 255, 255, 0.6)';
-            });
+                this.addMobileButtonFeedback(btn, true);
+            }, { passive: false });
             
+            // タッチエンド
             btn.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                btn.style.background = 'rgba(0, 255, 255, 0.3)';
-            });
+                e.stopPropagation();
+                this.addMobileButtonFeedback(btn, false);
+            }, { passive: false });
             
-            // クリック対応（タッチスクリーン以外のデバイス用）
-            btn.addEventListener('click', (e) => {
+            // タッチキャンセル
+            btn.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.addMobileButtonFeedback(btn, false);
+            }, { passive: false });
+            
+            // マウスクリック（タブレット・デスクトップフォールバック）
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 const key = btn.getAttribute('data-key');
                 this.handleKeyPress({ key: key });
+                this.addMobileButtonFeedback(btn, true);
+            });
+            
+            btn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.addMobileButtonFeedback(btn, false);
+            });
+            
+            btn.addEventListener('mouseleave', (e) => {
+                this.addMobileButtonFeedback(btn, false);
             });
         });
+    }
+    
+    addMobileButtonFeedback(btn, isActive) {
+        const key = btn.getAttribute('data-key');
+        
+        if (isActive) {
+            btn.classList.add('active');
+            // 振動フィードバック（サポートされている場合）
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        } else {
+            btn.classList.remove('active');
+        }
     }
     
     generateBeatmap() {
@@ -201,14 +251,48 @@ class DDRGame {
             alert('楽曲と難易度を選択してください');
             return;
         }
-        this.audio.src = this.selectedSong.path;
+        // 音楽ファイルの読み込み
+        this.loadAudioFile();
         
-        // 音楽の長さを取得してビートマップを再生成
-        this.audio.addEventListener('loadedmetadata', () => {
+        this.gameLoop();
+    }
+    
+    loadAudioFile() {
+        console.log('Loading audio file:', this.selectedSong.path);
+        
+        // 音楽ファイルの設定
+        this.audio.src = this.selectedSong.path;
+        this.audio.crossOrigin = 'anonymous'; // CORS対応
+        this.audio.preload = 'auto';
+        
+        // 音楽読み込み完了時の処理
+        const onLoadedMetadata = () => {
+            console.log('Audio metadata loaded, duration:', this.audio.duration);
             this.generateBeatmapFromAudio();
-        }, { once: true });
+            this.startGameplay();
+        };
+        
+        // 音楽読み込みエラー時の処理
+        const onError = (error) => {
+            console.error('Audio loading error:', error);
+            alert('音楽ファイルの読み込みに失敗しました。しばらく待ってからもう一度お試しください。');
+            this.returnToMenu();
+        };
+        
+        // イベントリスナーを設定
+        this.audio.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+        this.audio.addEventListener('error', onError, { once: true });
+        
+        // 音楽ファイルの読み込みを開始
+        this.audio.load();
+    }
+    
+    startGameplay() {
+        console.log('Starting gameplay');
         
         this.resetGame();
+        
+        // 画面切り替え
         this.topScreen.classList.add('hidden');
         this.levelSelectScreen.classList.add('hidden');
         this.gameArea.classList.remove('hidden');
@@ -218,11 +302,38 @@ class DDRGame {
             this.mobileControls.classList.remove('hidden');
         }
         
-        this.audio.play();
+        // 音楽再生（ユーザーアクションが必要な場合があるため、try-catch）
+        this.playAudio();
+        
         this.isPlaying = true;
         this.startTime = performance.now();
-        
-        this.gameLoop();
+    }
+    
+    async playAudio() {
+        try {
+            console.log('Attempting to play audio');
+            await this.audio.play();
+            console.log('Audio started successfully');
+        } catch (error) {
+            console.error('Audio play error:', error);
+            
+            // モバイルブラウザなどでユーザーアクションが必要な場合
+            if (error.name === 'NotAllowedError') {
+                alert('音楽を再生するには画面をタップしてください');
+                
+                // ユーザーアクションを待つ
+                const startAudio = () => {
+                    this.audio.play().then(() => {
+                        console.log('Audio started after user interaction');
+                        document.removeEventListener('click', startAudio);
+                        document.removeEventListener('touchstart', startAudio);
+                    });
+                };
+                
+                document.addEventListener('click', startAudio, { once: true });
+                document.addEventListener('touchstart', startAudio, { once: true });
+            }
+        }
     }
     
     generateBeatmapFromAudio() {
