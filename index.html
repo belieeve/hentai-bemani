@@ -416,6 +416,14 @@
             border: 3px solid #00ffff;
             border-radius: 10px;
             box-shadow: 0 0 20px #00ffff;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .target-area:active {
+            background: rgba(0, 255, 255, 0.4) !important;
+            box-shadow: 0 0 30px #00ffff !important;
         }
 
         .arrow-target {
@@ -719,7 +727,7 @@
             }
             
             .touch-controls {
-                display: flex; /* スマホではタッチコントロールを表示 */
+                display: none; /* ターゲットエリアタップを優先するため非表示 */
             }
             
             .touch-arrow {
@@ -1037,7 +1045,8 @@
         </div>
 
         <div class="controls-info">
-            <div>操作: ← ↓ ↑ → キーを使用</div>
+            <div>PC: ← ↓ ↑ → キーを使用</div>
+            <div>スマホ: 矢印エリアをタップ</div>
             <div>ESC: メニューに戻る</div>
         </div>
 

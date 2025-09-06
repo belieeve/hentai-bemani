@@ -230,25 +230,58 @@ class DDRGame {
     }
     
     setupTouchControls() {
-        // タッチコントロールのイベントリスナー設定
+        // ゲーム内のターゲットエリア（矢印部分）にタッチイベントを追加
+        const targetAreas = document.querySelectorAll('.target-area');
+        const lanes = ['left', 'down', 'up', 'right'];
+        
+        targetAreas.forEach((targetArea, index) => {
+            const direction = lanes[index];
+            
+            // ターゲットエリアのタッチイベント
+            targetArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleTargetTouch(direction, targetArea, index);
+            });
+            
+            // PC用クリックイベント（デバッグ用）
+            targetArea.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.handleTargetTouch(direction, targetArea, index);
+            });
+            
+            // タッチ終了時の視覚効果リセット
+            targetArea.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.resetTargetVisual(targetArea);
+            });
+            
+            targetArea.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.resetTargetVisual(targetArea);
+            });
+            
+            targetArea.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.resetTargetVisual(targetArea);
+            });
+        });
+        
+        // 従来の下部タッチコントロール（バックアップとして残す）
         const touchArrows = document.querySelectorAll('.touch-arrow');
         
         touchArrows.forEach(arrow => {
             const direction = arrow.getAttribute('data-direction');
             
-            // タッチ開始
             arrow.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // スクロール防止
+                e.preventDefault();
                 this.handleTouchStart(direction, arrow);
             });
             
-            // マウスクリック（デバッグ用・PC）
             arrow.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 this.handleTouchStart(direction, arrow);
             });
             
-            // タッチ終了
             arrow.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 this.handleTouchEnd(direction, arrow);
@@ -259,12 +292,29 @@ class DDRGame {
                 this.handleTouchEnd(direction, arrow);
             });
             
-            // タッチキャンセル
             arrow.addEventListener('touchcancel', (e) => {
                 e.preventDefault();
                 this.handleTouchEnd(direction, arrow);
             });
         });
+    }
+    
+    handleTargetTouch(direction, targetElement, laneIndex) {
+        if (!this.isPlaying) return;
+        
+        // 視覚的フィードバック
+        targetElement.style.background = 'rgba(0, 255, 255, 0.4)';
+        targetElement.style.boxShadow = '0 0 30px #00ffff';
+        
+        // ノーツヒット処理（音なし）
+        this.processTouchHit(laneIndex);
+        this.addVisualFeedback(laneIndex);
+    }
+    
+    resetTargetVisual(targetElement) {
+        // ターゲットエリアの視覚効果をリセット
+        targetElement.style.background = 'rgba(255, 255, 255, 0.2)';
+        targetElement.style.boxShadow = '0 0 20px #00ffff';
     }
     
     handleTouchStart(direction, element) {
