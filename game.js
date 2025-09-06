@@ -64,7 +64,7 @@ class DDRGame {
         this.selectedSong = {
             filename: 'hentaisong.mp3',
             title: 'hentaisong',
-            path: './assets/audio/hentaisong.mp3'
+            path: 'assets/audio/hentaisong.mp3'
         };
         this.selectedDifficulty = null;
         
@@ -75,9 +75,24 @@ class DDRGame {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.soundEnabled = true;
+            
+            // ブラウザの自動再生ポリシーに対応
+            this.audioContextResumed = false;
         } catch (e) {
             console.warn('Web Audio API not supported, sound effects disabled');
             this.soundEnabled = false;
+        }
+    }
+    
+    async resumeAudioContext() {
+        if (this.audioContext && this.audioContext.state === 'suspended' && !this.audioContextResumed) {
+            try {
+                await this.audioContext.resume();
+                this.audioContextResumed = true;
+                console.log('AudioContext resumed');
+            } catch (e) {
+                console.warn('Failed to resume AudioContext:', e);
+            }
         }
     }
     
@@ -226,11 +241,15 @@ class DDRGame {
         this.gameArea.classList.add('hidden');
     }
     
-    selectLevelAndStart(difficulty) {
+    async selectLevelAndStart(difficulty) {
         console.log('=== selectLevelAndStart called ===');
         console.log('Difficulty selected:', difficulty);
         this.selectedDifficulty = difficulty;
         console.log('Selected difficulty set to:', this.selectedDifficulty);
+        
+        // AudioContextを再開（ユーザーインタラクション時）
+        await this.resumeAudioContext();
+        
         this.startGame();
     }
     
@@ -323,11 +342,14 @@ class DDRGame {
         this.startGameplay();
     }
     
-    startGameplay() {
+    async startGameplay() {
         console.log('=== startGameplay called ===');
         console.log('Notes available:', this.notes.length);
         console.log('Game area visible:', !this.gameArea.classList.contains('hidden'));
         console.log('Initial HP:', this.hp);
+        
+        // AudioContextを再開（ブラウザのポリシー対応）
+        await this.resumeAudioContext();
         
         this.isPlaying = true;
         this.startTime = performance.now();
@@ -335,9 +357,12 @@ class DDRGame {
         
         // 音楽を再生（可能な場合）
         if (this.audio.src && !this.audio.error) {
-            this.audio.play().catch(e => {
-                console.warn('Audio play failed:', e);
-            });
+            try {
+                await this.audio.play();
+                console.log('Audio started successfully');
+            } catch (e) {
+                console.warn('Audio play failed, continuing without music:', e);
+            }
         }
         
         console.log('=== Starting game loop ===');
