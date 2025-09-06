@@ -1340,8 +1340,8 @@ function startGame() {
 
 // デバッグ情報とテスト関数
 console.log('DDR Rhythm Game が読み込まれました！');
-console.log('ファイルバージョン: 2024-09-07-mobile-v1');
-console.log('モバイル・タブレット完全対応版');
+console.log('ファイルバージョン: 2024-09-07-hp-balance-v1');
+console.log('HP削減量変更版: ミス1回 = HP -2');
 
 // テスト関数
 function testNoteCreation() {
