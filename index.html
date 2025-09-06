@@ -869,26 +869,26 @@
         }
 
         .game-over-screen {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(183, 28, 28, 0.9));
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95), rgba(15, 52, 96, 0.9));
             backdrop-filter: blur(10px);
         }
 
         .game-over-title {
             font-size: 64px;
             font-weight: bold;
-            color: #ff4444;
-            text-shadow: 0 0 30px #ff4444;
+            color: #00ffff;
+            text-shadow: 0 0 30px #00ffff;
             margin-bottom: 30px;
             animation: gameOverPulse 2s ease-in-out infinite alternate;
         }
 
         @keyframes gameOverPulse {
             from { 
-                text-shadow: 0 0 30px #ff4444; 
+                text-shadow: 0 0 30px #00ffff; 
                 transform: scale(1.0);
             }
             to { 
-                text-shadow: 0 0 50px #ff4444, 0 0 60px #ff4444; 
+                text-shadow: 0 0 50px #00ffff, 0 0 60px #00ffff; 
                 transform: scale(1.05);
             }
         }
@@ -898,7 +898,7 @@
             border-radius: 15px;
             padding: 30px;
             margin: 30px 0;
-            border: 2px solid #ff4444;
+            border: 2px solid #00ffff;
         }
 
         .game-over-stat {
