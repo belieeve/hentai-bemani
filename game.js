@@ -120,8 +120,22 @@ class DDRGame {
     }
     
     showLevelSelect() {
+        console.log('DDRGame.showLevelSelect() called');
+        console.log('topScreen:', this.topScreen);
+        console.log('levelSelectScreen:', this.levelSelectScreen);
+        
+        if (!this.topScreen || !this.levelSelectScreen) {
+            console.error('Screen elements not found!');
+            return;
+        }
+        
+        console.log('Hiding top screen');
         this.topScreen.classList.add('hidden');
+        console.log('Showing level select screen');
         this.levelSelectScreen.classList.remove('hidden');
+        
+        console.log('Top screen classes:', this.topScreen.className);
+        console.log('Level select classes:', this.levelSelectScreen.className);
     }
     
     showTopScreen() {
@@ -504,18 +518,35 @@ let game;
 document.addEventListener('DOMContentLoaded', () => {
     game = new DDRGame();
     console.log('Game initialized:', game);
+    console.log('Top screen element:', game.topScreen);
+    console.log('Level select element:', game.levelSelectScreen);
 });
 
-// グローバル関数
+// グローバル関数 - 確実にゲームが初期化されているかチェック
 function showLevelSelect() {
     console.log('showLevelSelect called, game:', game);
-    if (game) {
+    if (!game) {
+        console.log('Game not initialized, creating new instance');
+        game = new DDRGame();
+    }
+    
+    if (game && game.topScreen && game.levelSelectScreen) {
+        console.log('Executing screen transition');
         game.showLevelSelect();
+    } else {
+        console.error('Required elements not found:', {
+            game: !!game,
+            topScreen: !!game?.topScreen,
+            levelSelectScreen: !!game?.levelSelectScreen
+        });
     }
 }
 
 function selectLevelAndStart(difficulty) {
     console.log('selectLevelAndStart called with difficulty:', difficulty);
+    if (!game) {
+        game = new DDRGame();
+    }
     if (game) {
         game.selectLevelAndStart(difficulty);
     }
@@ -532,3 +563,33 @@ function startGame() {
 
 // デバッグ情報
 console.log('DDR Rhythm Game が読み込まれました！');
+
+// デバッグ用関数
+function debugScreens() {
+    const topScreen = document.getElementById('top-screen');
+    const levelScreen = document.getElementById('level-select-screen');
+    
+    console.log('=== Screen Debug Info ===');
+    console.log('Top screen element:', topScreen);
+    console.log('Top screen classes:', topScreen?.className);
+    console.log('Level screen element:', levelScreen);
+    console.log('Level screen classes:', levelScreen?.className);
+    console.log('Game object:', game);
+    
+    if (topScreen && levelScreen) {
+        console.log('Elements found! Testing manual transition...');
+        topScreen.classList.add('hidden');
+        levelScreen.classList.remove('hidden');
+        console.log('After transition:');
+        console.log('Top screen classes:', topScreen.className);
+        console.log('Level screen classes:', levelScreen.className);
+    }
+}
+
+// ページ読み込み後にデバッグ情報を出力
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        console.log('=== Page Load Complete ===');
+        debugScreens();
+    }, 1000);
+});
