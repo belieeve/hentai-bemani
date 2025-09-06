@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDR Style Rhythm Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ffff;
+        }
+
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .combo-display {
+            font-size: 20px;
+            color: #ffff00;
+        }
+
+        .accuracy-display {
+            font-size: 18px;
+            color: #00ff00;
+        }
+
+        .screen {
+            padding: 40px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .top-screen {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9));
+        }
+
+        .level-select-screen {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9), rgba(15, 52, 96, 0.9));
+        }
+
+        .game-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ffff; }
+            to { text-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+
+        .game-subtitle {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .song-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .song-item {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .song-item:hover {
+            border-color: #00ffff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .song-item.selected {
+            border-color: #00ffff;
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .difficulty-levels {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid #666;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .difficulty-btn:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+        }
+
+        .difficulty-btn.selected {
+            border-color: #00ffff;
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .difficulty-btn.easy {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .difficulty-btn.easy.selected {
+            background: rgba(76, 175, 80, 0.2);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .difficulty-btn.normal {
+            border-color: #FF9800;
+            color: #FF9800;
+        }
+
+        .difficulty-btn.normal.selected {
+            background: rgba(255, 152, 0, 0.2);
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+        }
+
+        .difficulty-btn.hard {
+            border-color: #F44336;
+            color: #F44336;
+        }
+
+        .difficulty-btn.hard.selected {
+            background: rgba(244, 67, 54, 0.2);
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+        }
+
+        .song-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #00ffff;
+        }
+
+        .song-info {
+            font-size: 14px;
+            color: #bbb;
+        }
+
+        .file-input {
+            margin: 10px;
+            padding: 10px;
+            background: #333;
+            color: white;
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .no-songs {
+            color: #999;
+            font-style: italic;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .main-btn {
+            padding: 20px 40px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.4s;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .main-btn:hover {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.6);
+        }
+
+        .main-btn:active {
+            transform: scale(1.02) translateY(-1px);
+        }
+
+        .level-selection-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px #00ffff;
+        }
+
+        .level-buttons-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .level-btn {
+            padding: 25px 35px;
+            border: 3px solid;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.4s;
+            font-size: 20px;
+            font-weight: bold;
+            min-width: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .level-btn:hover::before {
+            left: 100%;
+        }
+
+        .level-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-btn.easy {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .level-btn.easy:hover {
+            background: rgba(76, 175, 80, 0.3);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .level-btn.normal {
+            border-color: #FF9800;
+            color: #FF9800;
+        }
+
+        .level-btn.normal:hover {
+            background: rgba(255, 152, 0, 0.3);
+            box-shadow: 0 15px 30px rgba(255, 152, 0, 0.4);
+        }
+
+        .level-btn.hard {
+            border-color: #F44336;
+            color: #F44336;
+        }
+
+        .level-btn.hard:hover {
+            background: rgba(244, 67, 54, 0.3);
+            box-shadow: 0 15px 30px rgba(244, 67, 54, 0.4);
+        }
+
+        .level-description {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-lanes {
+            display: flex;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+        }
+
+        .lane {
+            width: 120px;
+            height: 100%;
+            border: 3px solid #444;
+            position: relative;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+        }
+
+        .lane:nth-child(1) { border-color: #ff4757; }
+        .lane:nth-child(2) { border-color: #3742fa; }
+        .lane:nth-child(3) { border-color: #2ed573; }
+        .lane:nth-child(4) { border-color: #ffa502; }
+
+        .target-area {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .arrow-target {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .note {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            animation: fall linear;
+        }
+
+        .note.left { 
+            background: linear-gradient(45deg, #ff4757, #ff6b7a);
+            left: 20px;
+        }
+        .note.down { 
+            background: linear-gradient(45deg, #3742fa, #5352ed);
+            left: 20px;
+        }
+        .note.up { 
+            background: linear-gradient(45deg, #2ed573, #7bed9f);
+            left: 20px;
+        }
+        .note.right { 
+            background: linear-gradient(45deg, #ffa502, #ff7675);
+            left: 20px;
+        }
+
+        @keyframes fall {
+            from {
+                top: -80px;
+            }
+            to {
+                top: calc(100vh - 100px);
+            }
+        }
+
+        .judgment {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            animation: judgment-fade 1s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes judgment-fade {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        .perfect { color: #00ff00; }
+        .great { color: #ffff00; }
+        .good { color: #ffa500; }
+        .miss { color: #ff0000; }
+
+        .controls-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #00ffff;
+        }
+
+        .play-button-container {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="score-display">スコア: <span id="score">0</span></div>
+            <div class="combo-display">コンボ: <span id="combo">0</span></div>
+            <div class="accuracy-display">正確度: <span id="accuracy">100%</span></div>
+        </div>
+
+        <!-- トップスクリーン -->
+        <div class="screen top-screen" id="top-screen">
+            <div class="game-title">DDR RHYTHM GAME</div>
+            <div class="game-subtitle">音楽に合わせて矢印キーをタイミングよく押そう！</div>
+            <button class="main-btn" onclick="showLevelSelect()">ゲームスタート</button>
+        </div>
+
+        <!-- レベル選択スクリーン -->
+        <div class="screen level-select-screen hidden" id="level-select-screen">
+            <div class="level-selection-title">hentaisong.mp3</div>
+            <div class="game-subtitle">難易度を選択してください</div>
+            <div class="level-buttons-container">
+                <div class="level-btn easy" onclick="selectLevelAndStart('easy')">
+                    <div>EASY</div>
+                    <div class="level-description">初心者向け</div>
+                </div>
+                <div class="level-btn normal" onclick="selectLevelAndStart('normal')">
+                    <div>NORMAL</div>
+                    <div class="level-description">中級者向け</div>
+                </div>
+                <div class="level-btn hard" onclick="selectLevelAndStart('hard')">
+                    <div>HARD</div>
+                    <div class="level-description">上級者向け</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area hidden" id="game-area">
+            <div class="note-lanes">
+                <div class="lane" data-direction="left">
+                    <div class="target-area">
+                        <div class="arrow-target">←</div>
+                    </div>
+                </div>
+                <div class="lane" data-direction="down">
+                    <div class="target-area">
+                        <div class="arrow-target">↓</div>
+                    </div>
+                </div>
+                <div class="lane" data-direction="up">
+                    <div class="target-area">
+                        <div class="arrow-target">↑</div>
+                    </div>
+                </div>
+                <div class="lane" data-direction="right">
+                    <div class="target-area">
+                        <div class="arrow-target">→</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <div>操作: ← ↓ ↑ → キーを使用</div>
+            <div>ESC: メニューに戻る</div>
+        </div>
+    </div>
+
+    <audio id="game-audio" preload="auto"></audio>
+    
+    <script src="game.js"></script>
+</body>
+</html>
