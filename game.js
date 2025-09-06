@@ -63,7 +63,7 @@ class DDRGame {
         this.selectedDifficulty = null;
         
         this.setupEventListeners();
-        this.generateBeatmap();
+        // generateBeatmap() is called when difficulty is selected
     }
     
     setupEventListeners() {
@@ -75,6 +75,12 @@ class DDRGame {
     }
     
     generateBeatmap() {
+        // selectedDifficultyがnullの場合はスキップ
+        if (!this.selectedDifficulty) {
+            console.log('No difficulty selected, skipping beatmap generation');
+            return;
+        }
+        
         const duration = 180; // 3分間のデフォルト時間
         const difficulty = this.difficultySettings[this.selectedDifficulty];
         const bpm = 140; // 仮のBPM
@@ -145,7 +151,13 @@ class DDRGame {
     }
     
     selectLevelAndStart(difficulty) {
+        console.log('selectLevelAndStart called with difficulty:', difficulty);
         this.selectedDifficulty = difficulty;
+        console.log('Selected difficulty set to:', this.selectedDifficulty);
+        
+        // 難易度が選択されたのでビートマップを生成
+        this.generateBeatmap();
+        
         this.startGame();
     }
     
@@ -175,6 +187,12 @@ class DDRGame {
     
     generateBeatmapFromAudio() {
         const duration = this.audio.duration;
+        
+        // selectedDifficultyがnullの場合はエラー
+        if (!this.selectedDifficulty) {
+            console.error('Cannot generate beatmap: no difficulty selected');
+            return;
+        }
         
         // ランダムビートマップ生成
         const difficulty = this.difficultySettings[this.selectedDifficulty];
@@ -516,29 +534,59 @@ let game;
 
 // ページ読み込み時にゲームインスタンスを作成
 document.addEventListener('DOMContentLoaded', () => {
-    game = new DDRGame();
-    console.log('Game initialized:', game);
-    console.log('Top screen element:', game.topScreen);
-    console.log('Level select element:', game.levelSelectScreen);
+    try {
+        game = new DDRGame();
+        console.log('Game initialized successfully:', game);
+        console.log('Top screen element:', game.topScreen);
+        console.log('Level select element:', game.levelSelectScreen);
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+    }
 });
 
 // グローバル関数 - 確実にゲームが初期化されているかチェック
 function showLevelSelect() {
     console.log('showLevelSelect called, game:', game);
+    
+    // ゲームが初期化されていない場合は初期化
     if (!game) {
         console.log('Game not initialized, creating new instance');
-        game = new DDRGame();
+        try {
+            game = new DDRGame();
+            console.log('New game instance created');
+        } catch (error) {
+            console.error('Failed to create game instance:', error);
+            return;
+        }
     }
     
+    // 要素の存在チェック
     if (game && game.topScreen && game.levelSelectScreen) {
-        console.log('Executing screen transition');
-        game.showLevelSelect();
+        console.log('Elements found, executing screen transition');
+        try {
+            game.showLevelSelect();
+        } catch (error) {
+            console.error('Error during screen transition:', error);
+        }
     } else {
         console.error('Required elements not found:', {
             game: !!game,
             topScreen: !!game?.topScreen,
             levelSelectScreen: !!game?.levelSelectScreen
         });
+        
+        // 直接DOM操作でフォールバック
+        console.log('Attempting direct DOM manipulation as fallback');
+        const topScreen = document.getElementById('top-screen');
+        const levelScreen = document.getElementById('level-select-screen');
+        
+        if (topScreen && levelScreen) {
+            topScreen.classList.add('hidden');
+            levelScreen.classList.remove('hidden');
+            console.log('Fallback screen transition completed');
+        } else {
+            console.error('Even direct DOM elements not found!');
+        }
     }
 }
 
