@@ -99,7 +99,8 @@ class DDRGame {
                     lane: lane,
                     type: 'single',
                     spawned: false,
-                    hit: false
+                    hit: false,
+                    passedCheck: false
                 });
             }
             
@@ -121,7 +122,8 @@ class DDRGame {
                         lane: lane,
                         type: 'simultaneous',
                         spawned: false,
-                        hit: false
+                        hit: false,
+                        passedCheck: false
                     });
                 });
             }
@@ -163,7 +165,7 @@ class DDRGame {
         
         console.log('=== Game initialization ===');
         
-        // スコアのみリセット（notesはリセットしない）
+        // 全ステータスをリセット
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
@@ -172,7 +174,10 @@ class DDRGame {
         this.goodHits = 0;
         this.niceHits = 0;
         this.missHits = 0;
+        this.hp = this.maxHp; // HPを必ず最大値にリセット
         this.activeNotes = [];
+        
+        console.log('Game started with HP reset to:', this.hp);
         
         console.log('=== Generating beatmap ===');
         // まず固定時間でビートマップを生成
@@ -275,7 +280,8 @@ class DDRGame {
                     lane: lane,
                     type: 'single',
                     spawned: false,
-                    hit: false
+                    hit: false,
+                    passedCheck: false
                 });
                 
                 // 複雑な難易度では追加パターン（確率を下げる）
@@ -347,7 +353,10 @@ class DDRGame {
             patterns.push({
                 time,
                 lane: Math.floor(Math.random() * 4),
-                type: 'single'
+                type: 'single',
+                spawned: false,
+                hit: false,
+                passedCheck: false
             });
         }
         
@@ -369,6 +378,12 @@ class DDRGame {
         if (!this.isPlaying) {
             console.log('Game loop stopped - isPlaying:', this.isPlaying);
             return;
+        }
+        
+        // ゲームループ実行の確認（最初の10秒のみ）
+        const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
+        if (currentTime < 10) {
+            console.log('Game loop running at time:', currentTime.toFixed(2));
         }
         
         this.spawnNotes();
@@ -452,27 +467,103 @@ class DDRGame {
         
         note.element = noteElement;
         note.spawnTime = performance.now();
+        note.hit = false; // 確実にfalseに設定
+        note.passedCheck = false; // 確実にfalseに設定
         this.activeNotes.push(note);
         
-        console.log('Active notes count:', this.activeNotes.length);
+        console.log('Note created! Lane:', note.lane, 'Arrow:', this.getArrowForLane(note.lane), 'Active notes:', this.activeNotes.length);
     }
     
     updateNotes() {
-        // ノーツの更新処理（必要に応じて）
+        // より確実なリアルタイム通過判定
+        const targetAreas = document.querySelectorAll('.target-area');
+        console.log('updateNotes called, active notes:', this.activeNotes.length);
+        
+        let notesToRemove = [];
+        
+        this.activeNotes.forEach((note, index) => {
+            if (note.element && !note.hit && !note.passedCheck) {
+                const noteRect = note.element.getBoundingClientRect();
+                
+                if (targetAreas[note.lane]) {
+                    const targetRect = targetAreas[note.lane].getBoundingClientRect();
+                    
+                    // より寛大な通過判定：ターゲットエリアの下端を通過
+                    const passThreshold = targetRect.bottom + 20;
+                    const notePassed = noteRect.top > passThreshold;
+                    
+                    console.log(`Note ${index} in lane ${note.lane} (${this.getArrowForLane(note.lane)}): 
+                        noteTop=${noteRect.top.toFixed(1)}, 
+                        passThreshold=${passThreshold.toFixed(1)}, 
+                        passed=${notePassed}`);
+                    
+                    if (notePassed) {
+                        console.log('🚫 NOTE MISSED! Arrow:', this.getArrowForLane(note.lane), 'Lane:', note.lane);
+                        note.hit = true;
+                        note.passedCheck = true;
+                        this.processMiss();
+                        
+                        // ノーツを削除対象に追加
+                        notesToRemove.push(note);
+                    }
+                } else {
+                    console.log('No target area found for lane:', note.lane);
+                }
+            }
+        });
+        
+        // 通過したノーツを削除
+        notesToRemove.forEach(note => {
+            if (note.element) {
+                note.element.remove();
+            }
+        });
+        
+        // アクティブノーツリストから除去
+        this.activeNotes = this.activeNotes.filter(note => !note.passedCheck);
+        
+        console.log('Remaining active notes:', this.activeNotes.length);
     }
     
     cleanupNotes() {
+        const targetAreas = document.querySelectorAll('.target-area');
+        
         this.activeNotes = this.activeNotes.filter(note => {
-            if (note.element && note.element.getBoundingClientRect().top > window.innerHeight) {
-                if (!note.hit) {
-                    this.processMiss();
-                    console.log('Missed note at lane', note.lane);
+            if (note.element) {
+                const noteRect = note.element.getBoundingClientRect();
+                const targetRect = targetAreas[note.lane] ? targetAreas[note.lane].getBoundingClientRect() : null;
+                
+                // ノーツがターゲットエリアを通過した場合（下端+100pxを基準）
+                let missThreshold = window.innerHeight;
+                if (targetRect) {
+                    missThreshold = targetRect.bottom + 100; // ターゲット下端から100px下
                 }
-                note.element.remove();
-                return false;
+                
+                if (noteRect.top > missThreshold) {
+                    if (!note.hit) {
+                        console.log('Note passed target area without input - MISS! Lane:', note.lane, 'Direction:', this.getArrowForLane(note.lane));
+                        this.processMiss();
+                    }
+                    note.element.remove();
+                    return false;
+                }
+                
+                // さらに厳しく：ノーツがターゲットエリアより下にある場合も判定
+                if (targetRect && !note.hit && noteRect.top > targetRect.bottom + 50) {
+                    console.log('Note passed judgment zone - MISS! Lane:', note.lane);
+                    note.hit = true; // 重複Miss防止
+                    this.processMiss();
+                    note.element.remove();
+                    return false;
+                }
             }
             return true;
         });
+    }
+    
+    getArrowForLane(laneIndex) {
+        const arrows = ['←', '↓', '↑', '→'];
+        return arrows[laneIndex] || '?';
     }
     
     handleKeyPress(e) {
@@ -481,10 +572,21 @@ class DDRGame {
             return;
         }
         
-        if (!this.isPlaying || !this.keyMap[e.key]) return;
+        if (!this.isPlaying) return;
+        
+        console.log('Key pressed:', e.key);
+        
+        // キーがマッピングされていない場合はMiss
+        if (!this.keyMap[e.key]) {
+            console.log('Invalid key pressed:', e.key, '- MISS!');
+            this.processMiss();
+            return;
+        }
         
         const direction = this.keyMap[e.key];
         const laneIndex = this.lanes.indexOf(direction);
+        
+        console.log('Mapped to direction:', direction, 'lane:', laneIndex);
         
         this.processHit(laneIndex);
         this.addVisualFeedback(laneIndex);
@@ -495,35 +597,54 @@ class DDRGame {
     }
     
     processHit(laneIndex) {
+        console.log('=== Key pressed for lane:', laneIndex, 'Direction:', this.lanes[laneIndex]);
         const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
+        
+        // 現在のレーンにあるヒットしていないノーツを取得
         const targetNotes = this.activeNotes.filter(note => 
             note.lane === laneIndex && !note.hit
         );
         
+        console.log('Available notes in lane:', targetNotes.length);
+        
         if (targetNotes.length === 0) {
-            // タイミング外のキー入力でもMissを表示
+            // タイミング外のキー入力 - 必ずMiss
+            console.log('No notes available in lane', laneIndex, '- FORCED MISS!');
             this.processMiss();
             return;
         }
         
-        // ターゲットエリアに最も近いノーツを見つける
-        let closestNote = null;
-        let minPositionDiff = Infinity;
+        // ターゲットエリア付近のノーツのみ判定対象にする
+        let validNotes = [];
+        const targetAreas = document.querySelectorAll('.target-area');
         
-        targetNotes.forEach(note => {
-            if (note.element) {
-                const noteRect = note.element.getBoundingClientRect();
-                const targetRect = document.querySelectorAll('.target-area')[laneIndex].getBoundingClientRect();
-                const positionDiff = Math.abs(noteRect.bottom - targetRect.bottom);
-                
-                if (positionDiff < minPositionDiff) {
-                    minPositionDiff = positionDiff;
-                    closestNote = note;
+        if (targetAreas[laneIndex]) {
+            const targetRect = targetAreas[laneIndex].getBoundingClientRect();
+            
+            targetNotes.forEach(note => {
+                if (note.element) {
+                    const noteRect = note.element.getBoundingClientRect();
+                    const positionDiff = Math.abs(noteRect.bottom - targetRect.bottom);
+                    
+                    // ターゲットエリア付近（150px以内）のノーツのみ対象
+                    if (positionDiff <= 150) {
+                        validNotes.push({note, positionDiff});
+                        console.log('Valid note found at distance:', positionDiff);
+                    }
                 }
-            }
-        });
+            });
+        }
         
-        if (!closestNote) return;
+        if (validNotes.length === 0) {
+            // 近くにノーツがない場合はMiss
+            console.log('No valid notes near target - MISS!');
+            this.processMiss();
+            return;
+        }
+        
+        // 最も近いノーツを選択
+        validNotes.sort((a, b) => a.positionDiff - b.positionDiff);
+        const {note: closestNote, positionDiff: minPositionDiff} = validNotes[0];
         
         const timingWindow = this.getPositionTimingWindow(minPositionDiff);
         if (timingWindow) {
@@ -533,6 +654,9 @@ class DDRGame {
             console.log('Hit:', timingWindow, 'at position diff:', minPositionDiff);
         } else {
             // 判定範囲外の場合はMiss
+            console.log('MISS! Position diff was too large:', minPositionDiff);
+            closestNote.hit = true;
+            closestNote.element.remove();
             this.processMiss();
         }
     }
@@ -547,10 +671,21 @@ class DDRGame {
     }
     
     getPositionTimingWindow(positionDiff) {
-        // 4段階判定（ピクセル単位での判定）
-        if (positionDiff <= 30) return 'perfect';
-        if (positionDiff <= 60) return 'good';
-        if (positionDiff <= 90) return 'nice';
+        // さらに厳しい4段階判定（ピクセル単位での判定）
+        console.log('Checking position diff:', positionDiff);
+        if (positionDiff <= 15) {
+            console.log('-> PERFECT');
+            return 'perfect';
+        }
+        if (positionDiff <= 30) {
+            console.log('-> GOOD');  
+            return 'good';
+        }
+        if (positionDiff <= 50) {
+            console.log('-> NICE');
+            return 'nice';
+        }
+        console.log('-> MISS (position diff too large)');
         return null; // 範囲外はMissとして処理
     }
     
@@ -595,12 +730,16 @@ class DDRGame {
     }
     
     processMiss() {
+        console.log('🔴🔴🔴 MISS DETECTED! 🔴🔴🔴');
+        console.log('=== PROCESSING MISS ===');
         this.missHits++;
         this.combo = 0;
-        this.hp -= 20; // ミスでHPを20減少（より厳しく）
+        const oldHp = this.hp;
+        this.hp -= 5; // ミスでHPを5減少
+        console.log('✨ Miss processed! HP:', oldHp, '→', this.hp, 'Total misses:', this.missHits);
+        console.log('🔴🔴🔴 MISS COMPLETE 🔴🔴🔴');
         this.showJudgment('MISS', 'miss');
         this.updateUI();
-        console.log('Miss! HP decreased to:', this.hp);
     }
     
     showJudgment(text, className) {
@@ -742,6 +881,7 @@ class DDRGame {
     }
     
     resetGame() {
+        console.log('resetGame called - HP before reset:', this.hp);
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
@@ -750,10 +890,11 @@ class DDRGame {
         this.goodHits = 0;
         this.niceHits = 0;
         this.missHits = 0;
-        this.hp = this.maxHp; // HPもリセット
+        this.hp = this.maxHp; // HPを最大値にリセット
         this.notes = [];
         this.activeNotes = [];
         
+        console.log('resetGame complete - HP after reset:', this.hp);
         this.updateUI();
     }
 }
@@ -820,24 +961,65 @@ function testNoteCreation() {
 // グローバルに公開
 window.testNoteCreation = testNoteCreation;
 
+// ミス処理テスト関数
+function testMiss() {
+    console.log('=== Manual Miss Test ===');
+    if (game) {
+        game.processMiss();
+        console.log('Manual miss processed');
+    } else {
+        console.log('Game not ready');
+    }
+}
+
+function debugActiveNotes() {
+    console.log('=== Active Notes Debug ===');
+    if (game && game.activeNotes) {
+        console.log('Total active notes:', game.activeNotes.length);
+        game.activeNotes.forEach((note, i) => {
+            console.log(`Note ${i}: Lane ${note.lane} (${game.getArrowForLane(note.lane)}), Hit: ${note.hit}, PassedCheck: ${note.passedCheck}`);
+        });
+    }
+}
+
+window.testMiss = testMiss;
+window.debugActiveNotes = debugActiveNotes;
+
 // ゲームオーバー画面のボタン機能
 function restartGame() {
     console.log('restartGame called');
     if (game) {
+        console.log('Resetting HP from', game.hp, 'to', game.maxHp);
+        // HPを完全にリセット
+        game.hp = game.maxHp;
+        
         // ゲームオーバー画面を隠す
         game.gameOverScreen.classList.add('hidden');
+        
         // 現在の難易度で再開
         game.selectLevelAndStart(game.selectedDifficulty);
+        
+        console.log('Game restarted with HP:', game.hp);
     }
 }
 
 function backToMenu() {
     console.log('backToMenu called');
     if (game) {
+        console.log('Resetting HP for menu return from', game.hp, 'to', game.maxHp);
+        // HPを完全にリセット
+        game.hp = game.maxHp;
+        
         // ゲームオーバー画面を隠す
         game.gameOverScreen.classList.add('hidden');
+        
         // メニューに戻る
         game.showTopScreen();
+        
+        // UIも更新してHPバーを正常に表示
+        game.updateUI();
+        
+        console.log('Returned to menu with HP:', game.hp);
     }
 }
 
