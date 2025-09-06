@@ -500,26 +500,22 @@ class DDRGame {
 // ゲーム初期化
 let game;
 
-function startGame() {
-    if (!game) {
-        game = new DDRGame();
-    }
-    game.startGame();
-}
-
 // ページ読み込み時にゲームインスタンスを作成
 document.addEventListener('DOMContentLoaded', () => {
     game = new DDRGame();
+    console.log('Game initialized:', game);
 });
 
 // グローバル関数
 function showLevelSelect() {
+    console.log('showLevelSelect called, game:', game);
     if (game) {
         game.showLevelSelect();
     }
 }
 
 function selectLevelAndStart(difficulty) {
+    console.log('selectLevelAndStart called with difficulty:', difficulty);
     if (game) {
         game.selectLevelAndStart(difficulty);
     }
@@ -527,9 +523,11 @@ function selectLevelAndStart(difficulty) {
 
 // ゲーム開始用のグローバル関数
 function startGame() {
-    if (game) {
-        game.startGame();
+    console.log('startGame called, game:', game);
+    if (!game) {
+        game = new DDRGame();
     }
+    game.startGame();
 }
 
 // デバッグ情報
