@@ -4,6 +4,7 @@ class DDRGame {
         this.gameArea = document.getElementById('game-area');
         this.topScreen = document.getElementById('top-screen');
         this.levelSelectScreen = document.getElementById('level-select-screen');
+        this.gameOverScreen = document.getElementById('game-over-screen');
         
         this.score = 0;
         this.combo = 0;
@@ -11,9 +12,11 @@ class DDRGame {
         this.totalNotes = 0;
         this.hitNotes = 0;
         this.perfectHits = 0;
-        this.greatHits = 0;
         this.goodHits = 0;
+        this.niceHits = 0;
         this.missHits = 0;
+        this.hp = 100;
+        this.maxHp = 100;
         
         this.isPlaying = false;
         this.startTime = 0;
@@ -30,25 +33,25 @@ class DDRGame {
         
         this.difficultySettings = {
             easy: { 
-                speed: 2.5, 
-                noteFrequency: 0.25, 
-                complexity: 0.8,
+                speed: 1.8, 
+                noteFrequency: 0.3, 
+                complexity: 0.5,
                 level: 1,
                 name: 'Easy',
                 color: '#4CAF50'
             },
             normal: { 
-                speed: 3.5, 
-                noteFrequency: 0.4, 
-                complexity: 1.3,
+                speed: 2.5, 
+                noteFrequency: 0.5, 
+                complexity: 0.8,
                 level: 2,
                 name: 'Normal',
                 color: '#FF9800'
             },
             hard: { 
-                speed: 5, 
-                noteFrequency: 0.6, 
-                complexity: 2.2,
+                speed: 3.5, 
+                noteFrequency: 0.7, 
+                complexity: 1.2,
                 level: 3,
                 name: 'Hard',
                 color: '#F44336'
@@ -57,14 +60,12 @@ class DDRGame {
         
         this.selectedSong = {
             filename: 'hentaisong.mp3',
-            title: '3:05の変態たち feat. 眠気',
-            path: 'assets/audio/hentaisong.mp3'
+            title: 'hentaisong',
+            path: './assets/audio/hentaisong.mp3'
         };
         this.selectedDifficulty = null;
         
         this.setupEventListeners();
-        this.setupMobileControls();
-        // generateBeatmap() is called when difficulty is selected
     }
     
     setupEventListeners() {
@@ -75,92 +76,7 @@ class DDRGame {
         this.audio.addEventListener('timeupdate', () => this.updateGame());
     }
     
-    setupMobileControls() {
-        // より確実なモバイル検出
-        const isMobile = this.detectMobile();
-        const mobileControls = document.getElementById('mobile-controls');
-        
-        if (mobileControls) {
-            this.mobileControls = mobileControls;
-            
-            if (isMobile) {
-                console.log('Mobile device detected, touch controls will be available');
-            }
-        }
-        
-        // タッチイベントリスナーを設定
-        this.setupTouchEvents();
-    }
-    
-    detectMobile() {
-        // 複数の条件でモバイルデバイスを検出
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
-        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const smallScreen = window.innerWidth <= 768;
-        
-        return mobileRegex.test(userAgent) || hasTouch || smallScreen;
-    }
-    
-    setupTouchEvents() {
-        document.querySelectorAll('.mobile-control-btn').forEach(btn => {
-            // タッチスタート
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const key = btn.getAttribute('data-key');
-                this.handleKeyPress({ key: key });
-                this.addMobileButtonFeedback(btn, true);
-            }, { passive: false });
-            
-            // タッチエンド
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.addMobileButtonFeedback(btn, false);
-            }, { passive: false });
-            
-            // タッチキャンセル
-            btn.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                this.addMobileButtonFeedback(btn, false);
-            }, { passive: false });
-            
-            // マウスクリック（タブレット・デスクトップフォールバック）
-            btn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                const key = btn.getAttribute('data-key');
-                this.handleKeyPress({ key: key });
-                this.addMobileButtonFeedback(btn, true);
-            });
-            
-            btn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.addMobileButtonFeedback(btn, false);
-            });
-            
-            btn.addEventListener('mouseleave', (e) => {
-                this.addMobileButtonFeedback(btn, false);
-            });
-        });
-    }
-    
-    addMobileButtonFeedback(btn, isActive) {
-        const key = btn.getAttribute('data-key');
-        
-        if (isActive) {
-            btn.classList.add('active');
-            // 振動フィードバック（サポートされている場合）
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        } else {
-            btn.classList.remove('active');
-        }
-    }
-    
     generateBeatmap() {
-        // selectedDifficultyがnullの場合はスキップ
         if (!this.selectedDifficulty) {
             console.log('No difficulty selected, skipping beatmap generation');
             return;
@@ -169,23 +85,27 @@ class DDRGame {
         const duration = 180; // 3分間のデフォルト時間
         const difficulty = this.difficultySettings[this.selectedDifficulty];
         const bpm = 140; // 仮のBPM
-        const beatInterval = 60 / bpm;
+        const beatInterval = 60 / bpm; // 約0.43秒
         
         this.notes = [];
         
-        for (let time = 2; time < duration; time += beatInterval / difficulty.complexity) {
+        // 適度な間隔でノーツを生成
+        for (let time = 1.0; time < duration; time += beatInterval * 0.8) { // 1秒から開始、より間隔を空ける
             if (Math.random() < difficulty.noteFrequency) {
                 // 単体ノーツ
                 const lane = Math.floor(Math.random() * 4);
                 this.notes.push({
                     time: time,
                     lane: lane,
-                    type: 'single'
+                    type: 'single',
+                    spawned: false,
+                    hit: false,
+                    passedCheck: false
                 });
             }
             
-            // より高い難易度では同時押しを追加
-            if (difficulty.complexity > 1.5 && Math.random() < 0.2) {
+            // より高い難易度では同時押しを追加（確率を大幅に下げる）
+            if (difficulty.complexity > 1.0 && Math.random() < 0.05) {
                 const lanes = [];
                 const numSimultaneous = Math.floor(Math.random() * 2) + 2; // 2-3同時
                 
@@ -200,7 +120,10 @@ class DDRGame {
                     this.notes.push({
                         time: time,
                         lane: lane,
-                        type: 'simultaneous'
+                        type: 'simultaneous',
+                        spawned: false,
+                        hit: false,
+                        passedCheck: false
                     });
                 });
             }
@@ -208,25 +131,12 @@ class DDRGame {
         
         this.notes.sort((a, b) => a.time - b.time);
         this.totalNotes = this.notes.length;
+        console.log('Generated beatmap with', this.notes.length, 'notes for difficulty:', this.selectedDifficulty);
     }
     
     showLevelSelect() {
-        console.log('DDRGame.showLevelSelect() called');
-        console.log('topScreen:', this.topScreen);
-        console.log('levelSelectScreen:', this.levelSelectScreen);
-        
-        if (!this.topScreen || !this.levelSelectScreen) {
-            console.error('Screen elements not found!');
-            return;
-        }
-        
-        console.log('Hiding top screen');
         this.topScreen.classList.add('hidden');
-        console.log('Showing level select screen');
         this.levelSelectScreen.classList.remove('hidden');
-        
-        console.log('Top screen classes:', this.topScreen.className);
-        console.log('Level select classes:', this.levelSelectScreen.className);
     }
     
     showTopScreen() {
@@ -236,128 +146,159 @@ class DDRGame {
     }
     
     selectLevelAndStart(difficulty) {
-        console.log('selectLevelAndStart called with difficulty:', difficulty);
+        console.log('=== selectLevelAndStart called ===');
+        console.log('Difficulty selected:', difficulty);
         this.selectedDifficulty = difficulty;
         console.log('Selected difficulty set to:', this.selectedDifficulty);
-        
-        // 難易度が選択されたのでビートマップを生成
-        this.generateBeatmap();
-        
         this.startGame();
     }
     
     startGame() {
+        console.log('=== startGame called ===');
+        console.log('selectedSong:', this.selectedSong);
+        console.log('selectedDifficulty:', this.selectedDifficulty);
+        
         if (!this.selectedSong || !this.selectedDifficulty) {
             alert('楽曲と難易度を選択してください');
             return;
         }
-        // 音楽ファイルの読み込み
-        this.loadAudioFile();
         
-        this.gameLoop();
-    }
-    
-    loadAudioFile() {
-        console.log('Loading audio file:', this.selectedSong.path);
+        console.log('=== Game initialization ===');
         
-        // 音楽ファイルの設定
-        this.audio.src = this.selectedSong.path;
-        this.audio.crossOrigin = 'anonymous'; // CORS対応
-        this.audio.preload = 'auto';
+        // 全ステータスをリセット
+        this.score = 0;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.hitNotes = 0;
+        this.perfectHits = 0;
+        this.goodHits = 0;
+        this.niceHits = 0;
+        this.missHits = 0;
+        this.hp = this.maxHp; // HPを必ず最大値にリセット
+        this.activeNotes = [];
         
-        // 音楽読み込み完了時の処理
-        const onLoadedMetadata = () => {
-            console.log('Audio metadata loaded, duration:', this.audio.duration);
-            this.generateBeatmapFromAudio();
-            this.startGameplay();
-        };
+        console.log('Game started with HP reset to:', this.hp);
         
-        // 音楽読み込みエラー時の処理
-        const onError = (error) => {
-            console.error('Audio loading error:', error);
-            alert('音楽ファイルの読み込みに失敗しました。しばらく待ってからもう一度お試しください。');
-            this.returnToMenu();
-        };
+        console.log('=== Generating beatmap ===');
+        // まず固定時間でビートマップを生成
+        this.generateBeatmap();
+        console.log('Initial beatmap generated with', this.notes.length, 'notes');
+        console.log('First 5 notes:', this.notes.slice(0, 5));
         
-        // イベントリスナーを設定
-        this.audio.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
-        this.audio.addEventListener('error', onError, { once: true });
-        
-        // 音楽ファイルの読み込みを開始
-        this.audio.load();
-    }
-    
-    startGameplay() {
-        console.log('Starting gameplay');
-        
-        this.resetGame();
-        
-        // 画面切り替え
+        // 画面遷移
         this.topScreen.classList.add('hidden');
         this.levelSelectScreen.classList.add('hidden');
         this.gameArea.classList.remove('hidden');
         
-        // モバイルコントロールを表示
-        if (this.mobileControls) {
-            this.mobileControls.classList.remove('hidden');
-        }
+        // 音楽の設定とロード
+        this.audio.src = this.selectedSong.path;
         
-        // 音楽再生（ユーザーアクションが必要な場合があるため、try-catch）
-        this.playAudio();
+        // 音楽ロードのタイムアウト設定
+        let audioLoaded = false;
         
-        this.isPlaying = true;
-        this.startTime = performance.now();
-    }
-    
-    async playAudio() {
+        // エラーハンドリングを追加
+        this.audio.addEventListener('error', (e) => {
+            console.warn('Audio loading failed, starting game without music');
+            if (!audioLoaded) {
+                audioLoaded = true;
+                this.startGameWithoutAudio();
+            }
+        }, { once: true });
+        
+        // 音楽の長さを取得してビートマップを再生成
+        this.audio.addEventListener('loadedmetadata', () => {
+            console.log('Audio loaded successfully, duration:', this.audio.duration);
+            this.generateBeatmapFromAudio();
+            console.log('Audio beatmap generated with', this.notes.length, 'notes for', this.selectedDifficulty, 'difficulty');
+            if (!audioLoaded) {
+                audioLoaded = true;
+                this.startGameplay();
+            }
+        }, { once: true });
+        
+        // 2秒後にタイムアウトして音楽なしで開始
+        setTimeout(() => {
+            if (!audioLoaded) {
+                console.warn('Audio loading timeout, starting without music');
+                audioLoaded = true;
+                this.startGameWithoutAudio();
+            }
+        }, 2000);
+        
+        // 音楽ロード開始
         try {
-            console.log('Attempting to play audio');
-            await this.audio.play();
-            console.log('Audio started successfully');
-        } catch (error) {
-            console.error('Audio play error:', error);
-            
-            // モバイルブラウザなどでユーザーアクションが必要な場合
-            if (error.name === 'NotAllowedError') {
-                alert('音楽を再生するには画面をタップしてください');
-                
-                // ユーザーアクションを待つ
-                const startAudio = () => {
-                    this.audio.play().then(() => {
-                        console.log('Audio started after user interaction');
-                        document.removeEventListener('click', startAudio);
-                        document.removeEventListener('touchstart', startAudio);
-                    });
-                };
-                
-                document.addEventListener('click', startAudio, { once: true });
-                document.addEventListener('touchstart', startAudio, { once: true });
+            this.audio.load();
+        } catch (e) {
+            console.warn('Audio load() failed:', e);
+            if (!audioLoaded) {
+                audioLoaded = true;
+                this.startGameWithoutAudio();
             }
         }
     }
     
-    generateBeatmapFromAudio() {
-        const duration = this.audio.duration;
+    startGameWithoutAudio() {
+        console.log('Starting game without audio');
+        this.startGameplay();
+    }
+    
+    startGameplay() {
+        console.log('=== startGameplay called ===');
+        console.log('Notes available:', this.notes.length);
+        console.log('Game area visible:', !this.gameArea.classList.contains('hidden'));
+        console.log('Initial HP:', this.hp);
         
-        // selectedDifficultyがnullの場合はエラー
-        if (!this.selectedDifficulty) {
-            console.error('Cannot generate beatmap: no difficulty selected');
-            return;
+        this.isPlaying = true;
+        this.startTime = performance.now();
+        this.updateUI();
+        
+        // 音楽を再生（可能な場合）
+        if (this.audio.src && !this.audio.error) {
+            this.audio.play().catch(e => {
+                console.warn('Audio play failed:', e);
+            });
         }
+        
+        console.log('=== Starting game loop ===');
+        this.gameLoop();
+    }
+    
+    generateBeatmapFromAudio() {
+        const duration = this.audio.duration || 180;
         
         // ランダムビートマップ生成
         const difficulty = this.difficultySettings[this.selectedDifficulty];
         this.notes = [];
         
-        for (let time = 2; time < duration - 2; time += 0.3 / difficulty.complexity) {
+        // 適度な間隔でノーツを生成
+        for (let time = 1.0; time < duration - 2; time += 0.4) {
             if (Math.random() < difficulty.noteFrequency) {
-                const patterns = this.getPatterns(difficulty.complexity, time);
-                patterns.forEach(note => this.notes.push(note));
+                // 基本ノーツ
+                const lane = Math.floor(Math.random() * 4);
+                this.notes.push({
+                    time: time,
+                    lane: lane,
+                    type: 'single',
+                    spawned: false,
+                    hit: false,
+                    passedCheck: false
+                });
+                
+                // 複雑な難易度では追加パターン（確率を下げる）
+                if (difficulty.complexity > 1.0 && Math.random() < 0.1) {
+                    const patterns = this.getPatterns(difficulty.complexity, time + 0.1);
+                    patterns.forEach(note => {
+                        note.spawned = false;
+                        note.hit = false;
+                        this.notes.push(note);
+                    });
+                }
             }
         }
         
         this.notes.sort((a, b) => a.time - b.time);
         this.totalNotes = this.notes.length;
+        console.log('Beatmap generation completed:', this.totalNotes, 'notes');
     }
     
     generateBeatmapForDifficulty(difficultyName) {
@@ -412,7 +353,10 @@ class DDRGame {
             patterns.push({
                 time,
                 lane: Math.floor(Math.random() * 4),
-                type: 'single'
+                type: 'single',
+                spawned: false,
+                hit: false,
+                passedCheck: false
             });
         }
         
@@ -431,7 +375,16 @@ class DDRGame {
     }
     
     gameLoop() {
-        if (!this.isPlaying) return;
+        if (!this.isPlaying) {
+            console.log('Game loop stopped - isPlaying:', this.isPlaying);
+            return;
+        }
+        
+        // ゲームループ実行の確認（最初の10秒のみ）
+        const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
+        if (currentTime < 10) {
+            console.log('Game loop running at time:', currentTime.toFixed(2));
+        }
         
         this.spawnNotes();
         this.updateNotes();
@@ -441,28 +394,71 @@ class DDRGame {
     }
     
     spawnNotes() {
-        const currentTime = this.audio.currentTime;
-        const spawnTime = 3; // 3秒前にスポーン
+        // 音楽がない場合は経過時間を使用
+        const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
+        const spawnTime = 2; // 2秒前にスポーン（より早く表示）
+        
+        if (this.notes.length === 0) {
+            console.log('No notes available to spawn!');
+            return;
+        }
+        
+        let spawnedCount = 0;
+        let shouldSpawnCount = 0;
         
         this.notes.forEach((note, index) => {
             if (!note.spawned && note.time - currentTime <= spawnTime) {
+                shouldSpawnCount++;
                 this.createNoteElement(note);
                 note.spawned = true;
+                spawnedCount++;
             }
         });
+        
+        if (shouldSpawnCount > 0) {
+            console.log('Time:', currentTime.toFixed(2), 'Should spawn:', shouldSpawnCount, 'Actually spawned:', spawnedCount);
+        }
+        
+        // 最初の10秒間は詳細ログ
+        if (currentTime < 10) {
+            const unspawnedNotes = this.notes.filter(n => !n.spawned);
+            console.log('Unspawned notes remaining:', unspawnedNotes.length);
+            if (unspawnedNotes.length > 0) {
+                console.log('Next note time:', unspawnedNotes[0].time, 'Current time:', currentTime, 'Diff:', unspawnedNotes[0].time - currentTime);
+            }
+        }
     }
     
     createNoteElement(note) {
+        console.log('Creating note element for lane', note.lane, 'at time', note.time);
+        
         const noteElement = document.createElement('div');
         noteElement.className = `note ${this.lanes[note.lane]}`;
         
+        // 矢印ノーツに変更
         const arrows = ['←', '↓', '↑', '→'];
         noteElement.textContent = arrows[note.lane];
         noteElement.style.color = 'white';
-        noteElement.style.textShadow = '0 0 10px white';
+        noteElement.style.textShadow = '0 0 15px white';
+        noteElement.style.fontSize = '50px';
+        noteElement.style.fontWeight = 'bold';
         
-        const lane = document.querySelectorAll('.lane')[note.lane];
+        const lanes = document.querySelectorAll('.lane');
+        console.log('Found lanes:', lanes.length);
+        
+        if (lanes.length === 0) {
+            console.error('No lanes found! Game area may not be visible');
+            return;
+        }
+        
+        const lane = lanes[note.lane];
+        if (!lane) {
+            console.error('Lane not found for index:', note.lane);
+            return;
+        }
+        
         lane.appendChild(noteElement);
+        console.log('Note element added to lane', note.lane);
         
         const difficulty = this.difficultySettings[this.selectedDifficulty];
         const fallDuration = 3000 / difficulty.speed;
@@ -471,28 +467,103 @@ class DDRGame {
         
         note.element = noteElement;
         note.spawnTime = performance.now();
+        note.hit = false; // 確実にfalseに設定
+        note.passedCheck = false; // 確実にfalseに設定
         this.activeNotes.push(note);
+        
+        console.log('Note created! Lane:', note.lane, 'Arrow:', this.getArrowForLane(note.lane), 'Active notes:', this.activeNotes.length);
     }
     
     updateNotes() {
-        // ノーツの更新処理（必要に応じて）
+        // より確実なリアルタイム通過判定
+        const targetAreas = document.querySelectorAll('.target-area');
+        console.log('updateNotes called, active notes:', this.activeNotes.length);
+        
+        let notesToRemove = [];
+        
+        this.activeNotes.forEach((note, index) => {
+            if (note.element && !note.hit && !note.passedCheck) {
+                const noteRect = note.element.getBoundingClientRect();
+                
+                if (targetAreas[note.lane]) {
+                    const targetRect = targetAreas[note.lane].getBoundingClientRect();
+                    
+                    // より寛大な通過判定：ターゲットエリアの下端を通過
+                    const passThreshold = targetRect.bottom + 20;
+                    const notePassed = noteRect.top > passThreshold;
+                    
+                    console.log(`Note ${index} in lane ${note.lane} (${this.getArrowForLane(note.lane)}): 
+                        noteTop=${noteRect.top.toFixed(1)}, 
+                        passThreshold=${passThreshold.toFixed(1)}, 
+                        passed=${notePassed}`);
+                    
+                    if (notePassed) {
+                        console.log('🚫 NOTE MISSED! Arrow:', this.getArrowForLane(note.lane), 'Lane:', note.lane);
+                        note.hit = true;
+                        note.passedCheck = true;
+                        this.processMiss();
+                        
+                        // ノーツを削除対象に追加
+                        notesToRemove.push(note);
+                    }
+                } else {
+                    console.log('No target area found for lane:', note.lane);
+                }
+            }
+        });
+        
+        // 通過したノーツを削除
+        notesToRemove.forEach(note => {
+            if (note.element) {
+                note.element.remove();
+            }
+        });
+        
+        // アクティブノーツリストから除去
+        this.activeNotes = this.activeNotes.filter(note => !note.passedCheck);
+        
+        console.log('Remaining active notes:', this.activeNotes.length);
     }
     
     cleanupNotes() {
+        const targetAreas = document.querySelectorAll('.target-area');
+        
         this.activeNotes = this.activeNotes.filter(note => {
-            // ノーツがターゲットエリア（画面下部）を通り過ぎた場合
-            const targetAreaBottom = window.innerHeight - 20; // ターゲットエリアのbottom位置
-            const noteBottom = note.element.offsetTop + note.element.offsetHeight;
-            
-            if (note.element && noteBottom > targetAreaBottom + 100) { // 100pxの余裕を持たせる
-                if (!note.hit) {
-                    this.processMiss();
+            if (note.element) {
+                const noteRect = note.element.getBoundingClientRect();
+                const targetRect = targetAreas[note.lane] ? targetAreas[note.lane].getBoundingClientRect() : null;
+                
+                // ノーツがターゲットエリアを通過した場合（下端+100pxを基準）
+                let missThreshold = window.innerHeight;
+                if (targetRect) {
+                    missThreshold = targetRect.bottom + 100; // ターゲット下端から100px下
                 }
-                note.element.remove();
-                return false;
+                
+                if (noteRect.top > missThreshold) {
+                    if (!note.hit) {
+                        console.log('Note passed target area without input - MISS! Lane:', note.lane, 'Direction:', this.getArrowForLane(note.lane));
+                        this.processMiss();
+                    }
+                    note.element.remove();
+                    return false;
+                }
+                
+                // さらに厳しく：ノーツがターゲットエリアより下にある場合も判定
+                if (targetRect && !note.hit && noteRect.top > targetRect.bottom + 50) {
+                    console.log('Note passed judgment zone - MISS! Lane:', note.lane);
+                    note.hit = true; // 重複Miss防止
+                    this.processMiss();
+                    note.element.remove();
+                    return false;
+                }
             }
             return true;
         });
+    }
+    
+    getArrowForLane(laneIndex) {
+        const arrows = ['←', '↓', '↑', '→'];
+        return arrows[laneIndex] || '?';
     }
     
     handleKeyPress(e) {
@@ -501,10 +572,21 @@ class DDRGame {
             return;
         }
         
-        if (!this.isPlaying || !this.keyMap[e.key]) return;
+        if (!this.isPlaying) return;
+        
+        console.log('Key pressed:', e.key);
+        
+        // キーがマッピングされていない場合はMiss
+        if (!this.keyMap[e.key]) {
+            console.log('Invalid key pressed:', e.key, '- MISS!');
+            this.processMiss();
+            return;
+        }
         
         const direction = this.keyMap[e.key];
         const laneIndex = this.lanes.indexOf(direction);
+        
+        console.log('Mapped to direction:', direction, 'lane:', laneIndex);
         
         this.processHit(laneIndex);
         this.addVisualFeedback(laneIndex);
@@ -515,86 +597,131 @@ class DDRGame {
     }
     
     processHit(laneIndex) {
-        const currentTime = this.audio.currentTime;
+        console.log('=== Key pressed for lane:', laneIndex, 'Direction:', this.lanes[laneIndex]);
+        const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
         
-        // ターゲットエリア内のノーツのみを対象にする
-        const targetAreaTop = window.innerHeight - 140; // ターゲットエリア上端
-        const targetAreaBottom = window.innerHeight - 20; // ターゲットエリア下端
-        
+        // 現在のレーンにあるヒットしていないノーツを取得
         const targetNotes = this.activeNotes.filter(note => 
-            note.lane === laneIndex && 
-            !note.hit && 
-            note.element &&
-            note.element.offsetTop >= targetAreaTop - 100 && // 少し余裕を持たせる
-            note.element.offsetTop <= targetAreaBottom + 50
+            note.lane === laneIndex && !note.hit
         );
         
-        if (targetNotes.length === 0) return;
+        console.log('Available notes in lane:', targetNotes.length);
         
-        // 最もターゲットエリアに近いノーツを見つける
-        let closestNote = null;
-        let minDistance = Infinity;
+        if (targetNotes.length === 0) {
+            // タイミング外のキー入力 - 必ずMiss
+            console.log('No notes available in lane', laneIndex, '- FORCED MISS!');
+            this.processMiss();
+            return;
+        }
         
-        const targetCenter = targetAreaTop + (targetAreaBottom - targetAreaTop) / 2;
+        // ターゲットエリア付近のノーツのみ判定対象にする
+        let validNotes = [];
+        const targetAreas = document.querySelectorAll('.target-area');
         
-        targetNotes.forEach(note => {
-            const noteCenter = note.element.offsetTop + note.element.offsetHeight / 2;
-            const distance = Math.abs(noteCenter - targetCenter);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestNote = note;
-            }
-        });
+        if (targetAreas[laneIndex]) {
+            const targetRect = targetAreas[laneIndex].getBoundingClientRect();
+            
+            targetNotes.forEach(note => {
+                if (note.element) {
+                    const noteRect = note.element.getBoundingClientRect();
+                    const positionDiff = Math.abs(noteRect.bottom - targetRect.bottom);
+                    
+                    // ターゲットエリア付近（150px以内）のノーツのみ対象
+                    if (positionDiff <= 150) {
+                        validNotes.push({note, positionDiff});
+                        console.log('Valid note found at distance:', positionDiff);
+                    }
+                }
+            });
+        }
         
-        if (!closestNote) return;
+        if (validNotes.length === 0) {
+            // 近くにノーツがない場合はMiss
+            console.log('No valid notes near target - MISS!');
+            this.processMiss();
+            return;
+        }
         
-        // 位置ベースのタイミング判定
-        const timingWindow = this.getPositionTimingWindow(minDistance);
+        // 最も近いノーツを選択
+        validNotes.sort((a, b) => a.positionDiff - b.positionDiff);
+        const {note: closestNote, positionDiff: minPositionDiff} = validNotes[0];
+        
+        const timingWindow = this.getPositionTimingWindow(minPositionDiff);
         if (timingWindow) {
             closestNote.hit = true;
             closestNote.element.remove();
             this.processTimingHit(timingWindow);
+            console.log('Hit:', timingWindow, 'at position diff:', minPositionDiff);
+        } else {
+            // 判定範囲外の場合はMiss
+            console.log('MISS! Position diff was too large:', minPositionDiff);
+            closestNote.hit = true;
+            closestNote.element.remove();
+            this.processMiss();
         }
     }
     
-    getPositionTimingWindow(distance) {
-        if (distance <= 20) return 'perfect';
-        if (distance <= 40) return 'great';
-        if (distance <= 60) return 'good';
+    getTimingWindow(timeDiff) {
+        if (timeDiff <= 0.03) return 'perfect';
+        if (timeDiff <= 0.06) return 'great';
+        if (timeDiff <= 0.09) return 'good';
+        if (timeDiff <= 0.12) return 'nice';
+        if (timeDiff <= 0.18) return 'bad';
         return null;
     }
     
-    getTimingWindow(timeDiff) {
-        if (timeDiff <= 0.05) return 'perfect';
-        if (timeDiff <= 0.1) return 'great';
-        if (timeDiff <= 0.15) return 'good';
-        return null;
+    getPositionTimingWindow(positionDiff) {
+        // さらに厳しい4段階判定（ピクセル単位での判定）
+        console.log('Checking position diff:', positionDiff);
+        if (positionDiff <= 15) {
+            console.log('-> PERFECT');
+            return 'perfect';
+        }
+        if (positionDiff <= 30) {
+            console.log('-> GOOD');  
+            return 'good';
+        }
+        if (positionDiff <= 50) {
+            console.log('-> NICE');
+            return 'nice';
+        }
+        console.log('-> MISS (position diff too large)');
+        return null; // 範囲外はMissとして処理
     }
     
     processTimingHit(timing) {
         this.hitNotes++;
-        this.combo++;
-        this.maxCombo = Math.max(this.maxCombo, this.combo);
         
         let points = 0;
         let color = '';
+        let breakCombo = false;
         
         switch (timing) {
             case 'perfect':
                 this.perfectHits++;
                 points = 1000;
                 color = 'perfect';
-                break;
-            case 'great':
-                this.greatHits++;
-                points = 500;
-                color = 'great';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 3); // Perfect で HP回復
                 break;
             case 'good':
                 this.goodHits++;
-                points = 200;
+                points = 600;
                 color = 'good';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 1); // Good で HP少し回復
                 break;
+            case 'nice':
+                this.niceHits = (this.niceHits || 0) + 1;
+                points = 300;
+                color = 'nice';
+                this.combo++;
+                // Niceは HP変化なし
+                break;
+        }
+        
+        if (!breakCombo) {
+            this.maxCombo = Math.max(this.maxCombo, this.combo);
         }
         
         this.score += points * (1 + this.combo * 0.01);
@@ -603,8 +730,14 @@ class DDRGame {
     }
     
     processMiss() {
+        console.log('🔴🔴🔴 MISS DETECTED! 🔴🔴🔴');
+        console.log('=== PROCESSING MISS ===');
         this.missHits++;
         this.combo = 0;
+        const oldHp = this.hp;
+        this.hp -= 5; // ミスでHPを5減少
+        console.log('✨ Miss processed! HP:', oldHp, '→', this.hp, 'Total misses:', this.missHits);
+        console.log('🔴🔴🔴 MISS COMPLETE 🔴🔴🔴');
         this.showJudgment('MISS', 'miss');
         this.updateUI();
     }
@@ -634,9 +767,39 @@ class DDRGame {
         document.getElementById('score').textContent = Math.floor(this.score);
         document.getElementById('combo').textContent = this.combo;
         
-        const accuracy = this.totalNotes > 0 ? 
-            ((this.perfectHits + this.greatHits * 0.8 + this.goodHits * 0.5) / this.hitNotes) * 100 : 100;
+        const accuracy = this.hitNotes > 0 ? 
+            ((this.perfectHits + this.goodHits * 0.8 + (this.niceHits || 0) * 0.5) / this.hitNotes) * 100 : 100;
         document.getElementById('accuracy').textContent = accuracy.toFixed(1) + '%';
+        
+        // HP更新
+        this.updateHP();
+    }
+    
+    updateHP() {
+        const hpPercentage = Math.max(0, this.hp / this.maxHp * 100);
+        const hpFill = document.getElementById('hp-fill');
+        const hpValue = document.getElementById('hp-value');
+        
+        if (hpFill && hpValue) {
+            hpFill.style.width = hpPercentage + '%';
+            hpValue.textContent = Math.floor(this.hp);
+            
+            // HP状態に応じて色を変更
+            hpFill.classList.remove('low', 'critical');
+            if (hpPercentage <= 20) {
+                hpFill.classList.add('critical');
+                console.log('HP CRITICAL! Current HP:', this.hp);
+            } else if (hpPercentage <= 40) {
+                hpFill.classList.add('low');
+                console.log('HP LOW! Current HP:', this.hp);
+            }
+        }
+        
+        // HPが0以下になったらゲームオーバー
+        if (this.hp <= 0) {
+            console.log('HP DEPLETED! GAME OVER!');
+            this.gameOver();
+        }
     }
     
     updateGame() {
@@ -652,9 +815,38 @@ class DDRGame {
         }, 2000);
     }
     
+    gameOver() {
+        console.log('=== GAME OVER ===');
+        this.isPlaying = false;
+        this.audio.pause();
+        
+        // 統計を表示
+        this.showGameOverScreen();
+    }
+    
+    showGameOverScreen() {
+        // 画面遷移
+        this.gameArea.classList.add('hidden');
+        this.gameOverScreen.classList.remove('hidden');
+        
+        // 統計データを更新
+        const accuracy = this.hitNotes > 0 ? 
+            ((this.perfectHits + this.goodHits * 0.8 + (this.niceHits || 0) * 0.5) / this.hitNotes) * 100 : 0;
+        
+        document.getElementById('final-score').textContent = Math.floor(this.score);
+        document.getElementById('final-combo').textContent = this.maxCombo;
+        document.getElementById('final-accuracy').textContent = accuracy.toFixed(1) + '%';
+        document.getElementById('final-perfect').textContent = this.perfectHits;
+        document.getElementById('final-great').textContent = this.goodHits; // Great→Good
+        document.getElementById('final-good').textContent = this.niceHits || 0; // Good→Nice
+        document.getElementById('final-nice').textContent = 0; // 使用しない
+        document.getElementById('final-bad').textContent = 0; // 使用しない
+        document.getElementById('final-miss').textContent = this.missHits;
+    }
+    
     showResults() {
         const accuracy = this.totalNotes > 0 ? 
-            ((this.perfectHits + this.greatHits * 0.8 + this.goodHits * 0.5) / this.totalNotes) * 100 : 0;
+            ((this.perfectHits + this.greatHits * 0.9 + this.goodHits * 0.7 + (this.niceHits || 0) * 0.4 + (this.badHits || 0) * 0.1) / this.totalNotes) * 100 : 0;
         
         let rank = 'F';
         if (accuracy >= 95) rank = 'SSS';
@@ -665,7 +857,7 @@ class DDRGame {
         else if (accuracy >= 60) rank = 'C';
         else if (accuracy >= 50) rank = 'D';
         
-        alert(`ゲーム終了！\n\nスコア: ${Math.floor(this.score)}\n最大コンボ: ${this.maxCombo}\n正確度: ${accuracy.toFixed(1)}%\nランク: ${rank}\n\nPerfect: ${this.perfectHits}\nGreat: ${this.greatHits}\nGood: ${this.goodHits}\nMiss: ${this.missHits}`);
+        alert(`ゲーム終了！\n\nスコア: ${Math.floor(this.score)}\n最大コンボ: ${this.maxCombo}\n正確度: ${accuracy.toFixed(1)}%\nランク: ${rank}\n\nPerfect: ${this.perfectHits}\nGreat: ${this.greatHits}\nGood: ${this.goodHits}\nNice: ${this.niceHits || 0}\nBad: ${this.badHits || 0}\nMiss: ${this.missHits}`);
         
         this.returnToMenu();
     }
@@ -676,12 +868,6 @@ class DDRGame {
         this.audio.currentTime = 0;
         
         this.gameArea.classList.add('hidden');
-        
-        // モバイルコントロールを非表示
-        if (this.mobileControls) {
-            this.mobileControls.classList.add('hidden');
-        }
-        
         this.showTopScreen();
         
         // ノーツをクリア
@@ -695,17 +881,20 @@ class DDRGame {
     }
     
     resetGame() {
+        console.log('resetGame called - HP before reset:', this.hp);
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
         this.hitNotes = 0;
         this.perfectHits = 0;
-        this.greatHits = 0;
         this.goodHits = 0;
+        this.niceHits = 0;
         this.missHits = 0;
+        this.hp = this.maxHp; // HPを最大値にリセット
         this.notes = [];
         this.activeNotes = [];
         
+        console.log('resetGame complete - HP after reset:', this.hp);
         this.updateUI();
     }
 }
@@ -715,67 +904,20 @@ let game;
 
 // ページ読み込み時にゲームインスタンスを作成
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        game = new DDRGame();
-        console.log('Game initialized successfully:', game);
-        console.log('Top screen element:', game.topScreen);
-        console.log('Level select element:', game.levelSelectScreen);
-    } catch (error) {
-        console.error('Failed to initialize game:', error);
-    }
+    game = new DDRGame();
+    console.log('Game initialized:', game);
 });
 
-// グローバル関数 - 確実にゲームが初期化されているかチェック
+// グローバル関数
 function showLevelSelect() {
     console.log('showLevelSelect called, game:', game);
-    
-    // ゲームが初期化されていない場合は初期化
-    if (!game) {
-        console.log('Game not initialized, creating new instance');
-        try {
-            game = new DDRGame();
-            console.log('New game instance created');
-        } catch (error) {
-            console.error('Failed to create game instance:', error);
-            return;
-        }
-    }
-    
-    // 要素の存在チェック
-    if (game && game.topScreen && game.levelSelectScreen) {
-        console.log('Elements found, executing screen transition');
-        try {
-            game.showLevelSelect();
-        } catch (error) {
-            console.error('Error during screen transition:', error);
-        }
-    } else {
-        console.error('Required elements not found:', {
-            game: !!game,
-            topScreen: !!game?.topScreen,
-            levelSelectScreen: !!game?.levelSelectScreen
-        });
-        
-        // 直接DOM操作でフォールバック
-        console.log('Attempting direct DOM manipulation as fallback');
-        const topScreen = document.getElementById('top-screen');
-        const levelScreen = document.getElementById('level-select-screen');
-        
-        if (topScreen && levelScreen) {
-            topScreen.classList.add('hidden');
-            levelScreen.classList.remove('hidden');
-            console.log('Fallback screen transition completed');
-        } else {
-            console.error('Even direct DOM elements not found!');
-        }
+    if (game) {
+        game.showLevelSelect();
     }
 }
 
 function selectLevelAndStart(difficulty) {
     console.log('selectLevelAndStart called with difficulty:', difficulty);
-    if (!game) {
-        game = new DDRGame();
-    }
     if (game) {
         game.selectLevelAndStart(difficulty);
     }
@@ -790,35 +932,97 @@ function startGame() {
     game.startGame();
 }
 
-// デバッグ情報
+// デバッグ情報とテスト関数
 console.log('DDR Rhythm Game が読み込まれました！');
+console.log('ファイルバージョン: 2024-09-06-v2');
 
-// デバッグ用関数
-function debugScreens() {
-    const topScreen = document.getElementById('top-screen');
-    const levelScreen = document.getElementById('level-select-screen');
-    
-    console.log('=== Screen Debug Info ===');
-    console.log('Top screen element:', topScreen);
-    console.log('Top screen classes:', topScreen?.className);
-    console.log('Level screen element:', levelScreen);
-    console.log('Level screen classes:', levelScreen?.className);
-    console.log('Game object:', game);
-    
-    if (topScreen && levelScreen) {
-        console.log('Elements found! Testing manual transition...');
-        topScreen.classList.add('hidden');
-        levelScreen.classList.remove('hidden');
-        console.log('After transition:');
-        console.log('Top screen classes:', topScreen.className);
-        console.log('Level screen classes:', levelScreen.className);
+// テスト関数
+function testNoteCreation() {
+    console.log('=== Manual Note Creation Test ===');
+    if (game && game.selectedDifficulty) {
+        console.log('Game instance found, creating test note...');
+        const testNote = {
+            time: 0,
+            lane: 0,
+            type: 'single',
+            spawned: false,
+            hit: false
+        };
+        game.createNoteElement(testNote);
+    } else {
+        console.log('Game not ready. Current state:', {
+            game: !!game,
+            difficulty: game?.selectedDifficulty,
+            isPlaying: game?.isPlaying
+        });
     }
 }
 
-// ページ読み込み後にデバッグ情報を出力
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        console.log('=== Page Load Complete ===');
-        debugScreens();
-    }, 1000);
-});
+// グローバルに公開
+window.testNoteCreation = testNoteCreation;
+
+// ミス処理テスト関数
+function testMiss() {
+    console.log('=== Manual Miss Test ===');
+    if (game) {
+        game.processMiss();
+        console.log('Manual miss processed');
+    } else {
+        console.log('Game not ready');
+    }
+}
+
+function debugActiveNotes() {
+    console.log('=== Active Notes Debug ===');
+    if (game && game.activeNotes) {
+        console.log('Total active notes:', game.activeNotes.length);
+        game.activeNotes.forEach((note, i) => {
+            console.log(`Note ${i}: Lane ${note.lane} (${game.getArrowForLane(note.lane)}), Hit: ${note.hit}, PassedCheck: ${note.passedCheck}`);
+        });
+    }
+}
+
+window.testMiss = testMiss;
+window.debugActiveNotes = debugActiveNotes;
+
+// ゲームオーバー画面のボタン機能
+function restartGame() {
+    console.log('restartGame called');
+    if (game) {
+        console.log('Resetting HP from', game.hp, 'to', game.maxHp);
+        // HPを完全にリセット
+        game.hp = game.maxHp;
+        
+        // ゲームオーバー画面を隠す
+        game.gameOverScreen.classList.add('hidden');
+        
+        // 現在の難易度で再開
+        game.selectLevelAndStart(game.selectedDifficulty);
+        
+        console.log('Game restarted with HP:', game.hp);
+    }
+}
+
+function backToMenu() {
+    console.log('backToMenu called');
+    if (game) {
+        console.log('Resetting HP for menu return from', game.hp, 'to', game.maxHp);
+        // HPを完全にリセット
+        game.hp = game.maxHp;
+        
+        // ゲームオーバー画面を隠す
+        game.gameOverScreen.classList.add('hidden');
+        
+        // メニューに戻る
+        game.showTopScreen();
+        
+        // UIも更新してHPバーを正常に表示
+        game.updateUI();
+        
+        console.log('Returned to menu with HP:', game.hp);
+    }
+}
+
+// グローバルに公開
+window.restartGame = restartGame;
+window.backToMenu = backToMenu;

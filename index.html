@@ -50,6 +50,57 @@
             color: #00ff00;
         }
 
+        .hp-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hp-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .hp-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 100%;
+            transition: width 0.3s ease-out;
+            border-radius: 8px;
+        }
+
+        .hp-fill.low {
+            background: linear-gradient(90deg, #FF9800, #FFC107);
+        }
+
+        .hp-fill.critical {
+            background: linear-gradient(90deg, #F44336, #FF5722);
+            animation: hp-flash 0.5s infinite alternate;
+        }
+
+        @keyframes hp-flash {
+            from { opacity: 0.7; }
+            to { opacity: 1.0; }
+        }
+
+        .hp-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            min-width: 45px;
+        }
+
         .screen {
             padding: 40px;
             text-align: center;
@@ -351,56 +402,25 @@
 
         .target-area {
             position: absolute;
-            bottom: 5px;
+            bottom: 100px;
             left: 0;
             right: 0;
             height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ffff;
         }
 
         .arrow-target {
-            width: 60px;
-            height: 60px;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
-            font-weight: bold;
-            border-radius: 50%;
-            border: 4px solid;
-            background: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 0 20px, inset 0 0 15px rgba(255, 255, 255, 0.1);
-            text-shadow: 0 0 10px;
-        }
-
-        .lane:nth-child(1) .arrow-target {
-            color: #ff4757;
-            border-color: #ff4757;
-            box-shadow: 0 0 20px #ff4757, inset 0 0 15px rgba(255, 71, 87, 0.1);
-            text-shadow: 0 0 10px #ff4757;
-        }
-
-        .lane:nth-child(2) .arrow-target {
-            color: #3742fa;
-            border-color: #3742fa;
-            box-shadow: 0 0 20px #3742fa, inset 0 0 15px rgba(55, 66, 250, 0.1);
-            text-shadow: 0 0 10px #3742fa;
-        }
-
-        .lane:nth-child(3) .arrow-target {
-            color: #2ed573;
-            border-color: #2ed573;
-            box-shadow: 0 0 20px #2ed573, inset 0 0 15px rgba(46, 213, 115, 0.1);
-            text-shadow: 0 0 10px #2ed573;
-        }
-
-        .lane:nth-child(4) .arrow-target {
-            color: #ffa502;
-            border-color: #ffa502;
-            box-shadow: 0 0 20px #ffa502, inset 0 0 15px rgba(255, 165, 2, 0.1);
-            text-shadow: 0 0 10px #ffa502;
+            font-size: 40px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
         }
 
         .note {
@@ -410,35 +430,40 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            font-size: 50px;
+            font-weight: bold;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
             animation: fall linear;
+            left: 20px;
+            background: linear-gradient(45deg, #333333, #555555);
+            border: 3px solid #ffffff;
         }
 
+        /* レーン別の色分け（矢印に適した色） */
         .note.left { 
             background: linear-gradient(45deg, #ff4757, #ff6b7a);
-            left: 20px;
+            border-color: #ff4757;
         }
         .note.down { 
             background: linear-gradient(45deg, #3742fa, #5352ed);
-            left: 20px;
+            border-color: #3742fa;
         }
         .note.up { 
             background: linear-gradient(45deg, #2ed573, #7bed9f);
-            left: 20px;
+            border-color: #2ed573;
         }
         .note.right { 
             background: linear-gradient(45deg, #ffa502, #ff7675);
-            left: 20px;
+            border-color: #ffa502;
         }
 
         @keyframes fall {
             from {
-                top: -100px;
+                top: -80px;
             }
             to {
-                top: calc(100vh - 140px);
+                top: calc(100vh - 100px);
             }
         }
 
@@ -459,14 +484,14 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
 
-        .perfect { color: #00ff00; }
-        .great { color: #ffff00; }
-        .good { color: #ffa500; }
-        .miss { color: #ff0000; }
+        .perfect { color: #00ff00; text-shadow: 0 0 20px #00ff00; }
+        .good { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+        .nice { color: #ffa500; text-shadow: 0 0 20px #ffa500; }
+        .miss { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
 
         .controls-info {
             position: absolute;
-            top: 20px;
+            bottom: 20px;
             left: 20px;
             background: rgba(0, 0, 0, 0.8);
             padding: 15px;
@@ -483,247 +508,55 @@
             display: none;
         }
 
-        /* タブレット対応 */
-        @media (max-width: 1024px) and (min-width: 769px) {
-            .game-title {
-                font-size: 40px;
+        .game-over-screen {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(183, 28, 28, 0.9));
+            backdrop-filter: blur(10px);
+        }
+
+        .game-over-title {
+            font-size: 64px;
+            font-weight: bold;
+            color: #ff4444;
+            text-shadow: 0 0 30px #ff4444;
+            margin-bottom: 30px;
+            animation: gameOverPulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes gameOverPulse {
+            from { 
+                text-shadow: 0 0 30px #ff4444; 
+                transform: scale(1.0);
             }
-            
-            .level-selection-title {
-                font-size: 32px;
-            }
-            
-            .lane {
-                width: 100px;
-            }
-            
-            .note {
-                width: 70px;
-                height: 70px;
-                font-size: 35px;
+            to { 
+                text-shadow: 0 0 50px #ff4444, 0 0 60px #ff4444; 
+                transform: scale(1.05);
             }
         }
 
-        /* モバイル・スマホ対応 */
-        @media (max-width: 768px) {
-            body {
-                overflow-x: hidden;
-            }
-            
-            .game-container {
-                min-height: 100vh;
-            }
-            
-            .header {
-                padding: 15px;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .score-display, .combo-display, .accuracy-display {
-                font-size: 16px;
-            }
-            
-            .game-title {
-                font-size: 28px;
-                margin-bottom: 15px;
-            }
-            
-            .game-subtitle {
-                font-size: 16px;
-                margin-bottom: 30px;
-            }
-            
-            .level-selection-title {
-                font-size: 24px;
-                margin-bottom: 20px;
-            }
-            
-            .level-buttons-container {
-                flex-direction: column;
-                gap: 15px;
-                padding: 0 20px;
-            }
-            
-            .level-btn {
-                min-width: 100%;
-                max-width: 300px;
-                margin: 0 auto;
-                padding: 18px 25px;
-                font-size: 18px;
-            }
-            
-            .main-btn {
-                padding: 18px 35px;
-                font-size: 20px;
-            }
-            
-            /* ゲームエリア調整 */
-            .note-lanes {
-                justify-content: center;
-                padding: 0 10px;
-            }
-            
-            .lane {
-                width: 70px;
-                margin: 0 2px;
-            }
-            
-            .note {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-                left: 10px;
-            }
-            
-            .target-area {
-                height: 70px;
-                bottom: 80px;
-            }
-            
-            .arrow-target {
-                font-size: 28px;
-            }
-            
-            .controls-info {
-                display: none;
-            }
-            
-            .judgment {
-                font-size: 28px;
-            }
-        }
-
-        /* 小さい画面対応 */
-        @media (max-width: 480px) {
-            .screen {
-                padding: 20px;
-            }
-            
-            .game-title {
-                font-size: 24px;
-            }
-            
-            .main-btn {
-                padding: 15px 25px;
-                font-size: 18px;
-            }
-            
-            .level-btn {
-                min-width: 150px;
-                padding: 15px 20px;
-                font-size: 16px;
-            }
-        }
-
-        /* タッチデバイス対応 */
-        @media (hover: none) and (pointer: coarse) {
-            .main-btn:hover, .level-btn:hover {
-                transform: none;
-            }
-            
-            .main-btn:active, .level-btn:active {
-                transform: scale(0.95);
-            }
-        }
-
-        /* モバイルタッチコントロール */
-        .mobile-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 1000;
-            padding: 10px;
+        .game-over-stats {
             background: rgba(0, 0, 0, 0.7);
             border-radius: 15px;
-            border: 2px solid #00ffff;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid #ff4444;
         }
 
-        .mobile-control-btn {
-            width: 65px;
-            height: 65px;
-            background: rgba(0, 255, 255, 0.2);
-            border: 3px solid;
-            border-radius: 50%;
+        .game-over-stat {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            font-size: 28px;
+            margin: 15px 0;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .game-over-stat .label {
             font-weight: bold;
-            color: white;
-            user-select: none;
-            cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .mobile-control-btn[data-key="ArrowLeft"] {
-            border-color: #ff4757;
-            color: #ff4757;
-        }
-
-        .mobile-control-btn[data-key="ArrowDown"] {
-            border-color: #3742fa;
-            color: #3742fa;
-        }
-
-        .mobile-control-btn[data-key="ArrowUp"] {
-            border-color: #2ed573;
-            color: #2ed573;
-        }
-
-        .mobile-control-btn[data-key="ArrowRight"] {
-            border-color: #ffa502;
-            color: #ffa502;
-        }
-
-        .mobile-control-btn:active {
-            transform: scale(0.85);
-            box-shadow: 0 0 20px;
-        }
-
-        .mobile-control-btn[data-key="ArrowLeft"]:active {
-            background: rgba(255, 71, 87, 0.4);
-            box-shadow: 0 0 20px #ff4757;
-        }
-
-        .mobile-control-btn[data-key="ArrowDown"]:active {
-            background: rgba(55, 66, 250, 0.4);
-            box-shadow: 0 0 20px #3742fa;
-        }
-
-        .mobile-control-btn[data-key="ArrowUp"]:active {
-            background: rgba(46, 213, 115, 0.4);
-            box-shadow: 0 0 20px #2ed573;
-        }
-
-        .mobile-control-btn[data-key="ArrowRight"]:active {
-            background: rgba(255, 165, 2, 0.4);
-            box-shadow: 0 0 20px #ffa502;
-        }
-
-        /* デスクトップでは非表示 */
-        @media (min-width: 769px) {
-            .mobile-controls {
-                display: none !important;
-            }
-        }
-
-        /* 極小画面調整 */
-        @media (max-width: 360px) {
-            .mobile-controls {
-                gap: 5px;
-                padding: 8px;
-            }
-            
-            .mobile-control-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 24px;
-            }
+        .game-over-stat .value {
+            color: #ffff00;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -733,18 +566,25 @@
             <div class="score-display">スコア: <span id="score">0</span></div>
             <div class="combo-display">コンボ: <span id="combo">0</span></div>
             <div class="accuracy-display">正確度: <span id="accuracy">100%</span></div>
+            <div class="hp-display">
+                <div class="hp-label">HP</div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="hp-fill"></div>
+                </div>
+                <div class="hp-text"><span id="hp-value">100</span>%</div>
+            </div>
         </div>
 
         <!-- トップスクリーン -->
         <div class="screen top-screen" id="top-screen">
             <div class="game-title">DDR RHYTHM GAME</div>
             <div class="game-subtitle">音楽に合わせて矢印キーをタイミングよく押そう！</div>
-            <button class="main-btn" onclick="alert('Button clicked!'); showLevelSelect();">ゲームスタート</button>
+            <button class="main-btn" onclick="showLevelSelect()">ゲームスタート</button>
         </div>
 
         <!-- レベル選択スクリーン -->
         <div class="screen level-select-screen hidden" id="level-select-screen">
-            <div class="level-selection-title">3:05の変態たち feat. 眠気</div>
+            <div class="level-selection-title">hentaisong.mp3</div>
             <div class="game-subtitle">難易度を選択してください</div>
             <div class="level-buttons-container">
                 <div class="level-btn easy" onclick="selectLevelAndStart('easy')">
@@ -787,17 +627,47 @@
             </div>
         </div>
 
+        <!-- ゲームオーバースクリーン -->
+        <div class="screen game-over-screen hidden" id="game-over-screen">
+            <div class="game-over-title">GAME OVER</div>
+            <div class="game-subtitle">HPが0になりました</div>
+            <div class="game-over-stats">
+                <div class="game-over-stat">
+                    <span class="label">最終スコア</span>
+                    <span class="value" id="final-score">0</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">最大コンボ</span>
+                    <span class="value" id="final-combo">0</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">正確度</span>
+                    <span class="value" id="final-accuracy">0%</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">Perfect</span>
+                    <span class="value" id="final-perfect">0</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">Good</span>
+                    <span class="value" id="final-great">0</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">Nice</span>
+                    <span class="value" id="final-good">0</span>
+                </div>
+                <div class="game-over-stat">
+                    <span class="label">Miss</span>
+                    <span class="value" id="final-miss">0</span>
+                </div>
+            </div>
+            <button class="main-btn" onclick="restartGame()">もう一度プレイ</button>
+            <button class="main-btn" onclick="backToMenu()">メニューに戻る</button>
+        </div>
+
         <div class="controls-info">
             <div>操作: ← ↓ ↑ → キーを使用</div>
             <div>ESC: メニューに戻る</div>
-        </div>
-
-        <!-- モバイル用タッチコントロール -->
-        <div class="mobile-controls hidden" id="mobile-controls">
-            <div class="mobile-control-btn" data-key="ArrowLeft">←</div>
-            <div class="mobile-control-btn" data-key="ArrowDown">↓</div>
-            <div class="mobile-control-btn" data-key="ArrowUp">↑</div>
-            <div class="mobile-control-btn" data-key="ArrowRight">→</div>
         </div>
     </div>
 
