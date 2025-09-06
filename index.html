@@ -477,11 +477,54 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             animation: judgment-fade 1s ease-out forwards;
             z-index: 1000;
+            white-space: pre-line;
+            text-align: center;
         }
 
         @keyframes judgment-fade {
             0% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        .hit-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999;
+            animation: hit-expand 0.6s ease-out forwards;
+        }
+
+        @keyframes hit-expand {
+            0% { 
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(2.0);
+                opacity: 0;
+            }
+        }
+
+        .combo-flash {
+            animation: combo-highlight 0.3s ease-out;
+        }
+
+        @keyframes combo-highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+            100% { transform: scale(1); }
+        }
+
+        .lane-flash {
+            animation: lane-flash-effect 0.2s ease-out;
+        }
+
+        @keyframes lane-flash-effect {
+            0% { background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%); }
+            50% { background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.6) 100%); }
+            100% { background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%); }
         }
 
         .perfect { color: #00ff00; text-shadow: 0 0 20px #00ff00; }
