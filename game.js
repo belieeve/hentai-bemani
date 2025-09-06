@@ -57,7 +57,7 @@ class DDRGame {
         
         this.selectedSong = {
             filename: 'hentaisong.mp3',
-            title: 'hentaisong',
+            title: '3:05の変態たち feat. 眠気',
             path: 'assets/audio/hentaisong.mp3'
         };
         this.selectedDifficulty = null;
