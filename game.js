@@ -686,14 +686,8 @@ class DDRGame {
     showTouchControls() {
         const touchControls = document.getElementById('touch-controls');
         if (touchControls) {
-            // モバイルデバイス判定
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                            ('ontouchstart' in window) || 
-                            (navigator.maxTouchPoints > 0);
-            
-            if (isMobile) {
-                touchControls.style.display = 'flex';
-            }
+            // ターゲットエリアタップを優先するため、下部タッチコントロールは非表示のまま
+            touchControls.style.display = 'none';
         }
     }
     
