@@ -451,6 +451,124 @@
         .hidden {
             display: none;
         }
+
+        /* モバイル・タブレット対応 */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 32px;
+            }
+            
+            .game-subtitle {
+                font-size: 18px;
+            }
+            
+            .level-selection-title {
+                font-size: 28px;
+            }
+            
+            .level-buttons-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .level-btn {
+                min-width: 200px;
+                padding: 20px 30px;
+            }
+            
+            .lane {
+                width: 80px;
+            }
+            
+            .note {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .target-area {
+                height: 80px;
+            }
+            
+            .arrow-target {
+                font-size: 30px;
+            }
+            
+            .controls-info {
+                display: none; /* モバイルでは非表示 */
+            }
+        }
+
+        /* 小さい画面対応 */
+        @media (max-width: 480px) {
+            .screen {
+                padding: 20px;
+            }
+            
+            .game-title {
+                font-size: 24px;
+            }
+            
+            .main-btn {
+                padding: 15px 25px;
+                font-size: 18px;
+            }
+            
+            .level-btn {
+                min-width: 150px;
+                padding: 15px 20px;
+                font-size: 16px;
+            }
+        }
+
+        /* タッチデバイス対応 */
+        @media (hover: none) and (pointer: coarse) {
+            .main-btn:hover, .level-btn:hover {
+                transform: none;
+            }
+            
+            .main-btn:active, .level-btn:active {
+                transform: scale(0.95);
+            }
+        }
+
+        /* モバイルタッチコントロール */
+        .mobile-controls {
+            position: fixed;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .mobile-control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.3);
+            border: 3px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #00ffff;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-control-btn:active {
+            background: rgba(0, 255, 255, 0.6);
+            transform: scale(0.9);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-controls {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -516,6 +634,14 @@
         <div class="controls-info">
             <div>操作: ← ↓ ↑ → キーを使用</div>
             <div>ESC: メニューに戻る</div>
+        </div>
+
+        <!-- モバイル用タッチコントロール -->
+        <div class="mobile-controls hidden" id="mobile-controls">
+            <div class="mobile-control-btn" data-key="ArrowLeft">←</div>
+            <div class="mobile-control-btn" data-key="ArrowDown">↓</div>
+            <div class="mobile-control-btn" data-key="ArrowUp">↑</div>
+            <div class="mobile-control-btn" data-key="ArrowRight">→</div>
         </div>
     </div>
 

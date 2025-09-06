@@ -63,6 +63,7 @@ class DDRGame {
         this.selectedDifficulty = null;
         
         this.setupEventListeners();
+        this.setupMobileControls();
         // generateBeatmap() is called when difficulty is selected
     }
     
@@ -72,6 +73,40 @@ class DDRGame {
         
         this.audio.addEventListener('ended', () => this.endGame());
         this.audio.addEventListener('timeupdate', () => this.updateGame());
+    }
+    
+    setupMobileControls() {
+        // モバイル検出
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        
+        if (isMobile) {
+            const mobileControls = document.getElementById('mobile-controls');
+            if (mobileControls) {
+                // ゲーム中のみ表示
+                this.mobileControls = mobileControls;
+            }
+        }
+        
+        // タッチイベントリスナー
+        document.querySelectorAll('.mobile-control-btn').forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const key = btn.getAttribute('data-key');
+                this.handleKeyPress({ key: key });
+                btn.style.background = 'rgba(0, 255, 255, 0.6)';
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                btn.style.background = 'rgba(0, 255, 255, 0.3)';
+            });
+            
+            // クリック対応（タッチスクリーン以外のデバイス用）
+            btn.addEventListener('click', (e) => {
+                const key = btn.getAttribute('data-key');
+                this.handleKeyPress({ key: key });
+            });
+        });
     }
     
     generateBeatmap() {
@@ -177,6 +212,11 @@ class DDRGame {
         this.topScreen.classList.add('hidden');
         this.levelSelectScreen.classList.add('hidden');
         this.gameArea.classList.remove('hidden');
+        
+        // モバイルコントロールを表示
+        if (this.mobileControls) {
+            this.mobileControls.classList.remove('hidden');
+        }
         
         this.audio.play();
         this.isPlaying = true;
@@ -525,6 +565,12 @@ class DDRGame {
         this.audio.currentTime = 0;
         
         this.gameArea.classList.add('hidden');
+        
+        // モバイルコントロールを非表示
+        if (this.mobileControls) {
+            this.mobileControls.classList.add('hidden');
+        }
+        
         this.showTopScreen();
         
         // ノーツをクリア
