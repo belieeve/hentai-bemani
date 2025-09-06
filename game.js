@@ -270,20 +270,144 @@ class DDRGame {
     handleTouchStart(direction, element) {
         if (!this.isPlaying) return;
         
-        // キーボードイベントと同じ処理を呼び出し
-        const keyMap = {
-            'left': 'ArrowLeft',
-            'down': 'ArrowDown', 
-            'up': 'ArrowUp',
-            'right': 'ArrowRight'
+        // タッチ用の処理（音なし）
+        const laneMap = {
+            'left': 0,
+            'down': 1, 
+            'up': 2,
+            'right': 3
         };
         
-        const keyEvent = { key: keyMap[direction] };
-        this.handleKeyPress(keyEvent);
+        const laneIndex = laneMap[direction];
         
-        // 視覚的フィードバック
+        // ノーツヒット処理（音効果なし）
+        this.processTouchHit(laneIndex);
+        this.addVisualFeedback(laneIndex);
+        
+        // ボタンの視覚的フィードバック
         element.style.background = 'rgba(255, 255, 255, 0.5)';
         element.style.transform = 'scale(0.9)';
+    }
+    
+    processTouchHit(laneIndex) {
+        const currentTime = this.audio.currentTime || (performance.now() - this.startTime) / 1000;
+        
+        // 現在のレーンにあるヒットしていないノーツを取得
+        const targetNotes = this.activeNotes.filter(note => 
+            note.lane === laneIndex && !note.hit
+        );
+        
+        if (targetNotes.length === 0) {
+            // タイミング外のタッチ入力 - ミス（音なし）
+            this.processTouchMiss();
+            return;
+        }
+        
+        // ターゲットエリア付近のノーツのみ判定対象にする
+        let validNotes = [];
+        const targetAreas = document.querySelectorAll('.target-area');
+        
+        if (targetAreas[laneIndex]) {
+            const targetRect = targetAreas[laneIndex].getBoundingClientRect();
+            
+            targetNotes.forEach(note => {
+                if (note.element) {
+                    const noteRect = note.element.getBoundingClientRect();
+                    const positionDiff = Math.abs(noteRect.bottom - targetRect.bottom);
+                    
+                    if (positionDiff <= 150) {
+                        validNotes.push({note, positionDiff});
+                    }
+                }
+            });
+        }
+        
+        if (validNotes.length === 0) {
+            this.processTouchMiss();
+            return;
+        }
+        
+        // 最も近いノーツを選択
+        validNotes.sort((a, b) => a.positionDiff - b.positionDiff);
+        const {note: closestNote, positionDiff: minPositionDiff} = validNotes[0];
+        
+        const timingWindow = this.getPositionTimingWindow(minPositionDiff);
+        if (timingWindow) {
+            closestNote.hit = true;
+            closestNote.element.remove();
+            this.processTouchTimingHit(timingWindow);
+        } else {
+            closestNote.hit = true;
+            closestNote.element.remove();
+            this.processTouchMiss();
+        }
+    }
+    
+    processTouchTimingHit(timing) {
+        // 音なしでスコア処理のみ
+        this.hitNotes++;
+        
+        let points = 0;
+        let color = '';
+        
+        switch (timing) {
+            case 'perfect':
+                this.perfectHits++;
+                points = 1000;
+                color = 'perfect';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 3);
+                break;
+            case 'good':
+                this.goodHits++;
+                points = 600;
+                color = 'good';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 1);
+                break;
+            case 'nice':
+                this.niceHits = (this.niceHits || 0) + 1;
+                points = 300;
+                color = 'nice';
+                this.combo++;
+                break;
+        }
+        
+        this.maxCombo = Math.max(this.maxCombo, this.combo);
+        
+        // スコア倍率システム
+        let multiplier = 1;
+        if (this.combo >= 50) {
+            multiplier = 2.0;
+        } else if (this.combo >= 25) {
+            multiplier = 1.5;
+        } else if (this.combo >= 10) {
+            multiplier = 1.2;
+        } else if (this.combo >= 5) {
+            multiplier = 1.1;
+        }
+        
+        const finalScore = points * multiplier;
+        this.score += finalScore;
+        
+        // スコア表示（音なし）
+        if (multiplier > 1) {
+            this.showJudgment(`${timing.toUpperCase()}\n+${Math.floor(finalScore)} (×${multiplier})`, color);
+        } else {
+            this.showJudgment(timing.toUpperCase(), color);
+        }
+        
+        this.updateUI();
+    }
+    
+    processTouchMiss() {
+        // 音なしでミス処理
+        this.missHits++;
+        this.combo = 0;
+        this.hp -= 5;
+        
+        this.showJudgment('MISS', 'miss');
+        this.updateUI();
     }
     
     handleTouchEnd(direction, element) {
