@@ -404,7 +404,7 @@ class DDRGame {
         // 音なしでミス処理
         this.missHits++;
         this.combo = 0;
-        this.hp -= 5;
+        this.hp -= 2; // ミスでHPを2減少
         
         this.showJudgment('MISS', 'miss');
         this.updateUI();
@@ -1090,7 +1090,7 @@ class DDRGame {
     processMiss() {
         this.missHits++;
         this.combo = 0;
-        this.hp -= 5; // ミスでHPを5減少
+        this.hp -= 2; // ミスでHPを2減少
         
         // ミスのサウンドエフェクト再生
         this.playMissSound();
