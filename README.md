@@ -4,7 +4,8 @@
 
 ## 🌐 今すぐプレイ
 
-**👉 [https://belieeve.github.io/bemani/](https://belieeve.github.io/bemani/)**
+- 本番: https://bemani.vercel.app/
+- ミラー: https://belieeve.github.io/bemani/
 
 上記のリンクから、どのデバイスからでも無料でプレイできます！
 
@@ -18,14 +19,14 @@
 ## 🎯 遊び方
 
 ### PC・Macの場合
-1. [ゲームURL](https://belieeve.github.io/bemani/) にアクセス
+1. [ゲームURL](https://bemani.vercel.app/) にアクセス
 2. 「ゲームスタート」をクリック
 3. 好きな難易度を選択
 4. **矢印キー（←↓↑→）** で音楽に合わせてプレイ
 5. **ESC** でメニューに戻る
 
 ### スマホ・タブレットの場合
-1. [ゲームURL](https://belieeve.github.io/bemani/) にアクセス
+1. [ゲームURL](https://bemani.vercel.app/) にアクセス
 2. 「ゲームスタート」をタップ
 3. 好きな難易度を選択
 4. **画面下部のタッチボタン** で音楽に合わせてプレイ

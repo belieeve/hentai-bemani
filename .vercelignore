@@ -1,0 +1,10 @@
+# Exclude old demo and non-essential files from deployments
+public/
+.github/
+.claude/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+node_modules/
+*.log
+
