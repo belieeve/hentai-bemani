@@ -1,5 +1,5 @@
 # Exclude old demo and non-essential files from deployments
-public/
+# Keep public/ included for Vercel deployments that use it as Output Directory
 .github/
 .claude/
 .DS_Store
@@ -7,4 +7,3 @@ public/
 Thumbs.db
 node_modules/
 *.log
-
