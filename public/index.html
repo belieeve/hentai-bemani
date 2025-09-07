@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDR Style Rhythm Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HEN-TAI STEP CLIMAX</title>
     <style>
         * {
             margin: 0;
@@ -11,11 +11,25 @@
             box-sizing: border-box;
         }
 
+        .top-image {
+            max-width: 80%;
+            max-height: 40vh;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
             color: white;
             overflow: hidden;
+            /* モバイル向けの追加設定 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .game-container {
@@ -410,6 +424,14 @@
             border: 3px solid #00ffff;
             border-radius: 10px;
             box-shadow: 0 0 20px #00ffff;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .target-area:active {
+            background: rgba(0, 255, 255, 0.4) !important;
+            box-shadow: 0 0 30px #00ffff !important;
         }
 
         .arrow-target {
@@ -477,6 +499,8 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             animation: judgment-fade 1s ease-out forwards;
             z-index: 1000;
+            white-space: pre-line;
+            text-align: center;
         }
 
         @keyframes judgment-fade {
@@ -484,10 +508,301 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
 
+        .hit-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999;
+            animation: hit-expand 0.6s ease-out forwards;
+        }
+
+        @keyframes hit-expand {
+            0% { 
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(2.0);
+                opacity: 0;
+            }
+        }
+
+        .combo-flash {
+            animation: combo-highlight 0.3s ease-out;
+        }
+
+        @keyframes combo-highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+            100% { transform: scale(1); }
+        }
+
+        .lane-flash {
+            animation: lane-flash-effect 0.2s ease-out;
+        }
+
+        @keyframes lane-flash-effect {
+            0% { background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%); }
+            50% { background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.6) 100%); }
+            100% { background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%); }
+        }
+
         .perfect { color: #00ff00; text-shadow: 0 0 20px #00ff00; }
         .good { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
         .nice { color: #ffa500; text-shadow: 0 0 20px #ffa500; }
         .miss { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
+
+        /* タッチコントロールは削除 - ターゲットエリア直接タップを使用 */
+
+        /* レスポンシブデザイン - タブレット */
+        @media screen and (max-width: 1024px) {
+            .game-title {
+                font-size: 36px;
+            }
+            
+            .song-list {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                max-height: 350px;
+            }
+            
+            .level-buttons-container {
+                gap: 20px;
+            }
+            
+            .level-btn {
+                padding: 20px 30px;
+                font-size: 18px;
+                min-width: 120px;
+            }
+            
+            .lane {
+                width: 100px;
+            }
+            
+            .note {
+                width: 70px;
+                height: 70px;
+                font-size: 45px;
+                left: 15px;
+            }
+        }
+
+        /* レスポンシブデザイン - スマートフォン */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            .header {
+                padding: 10px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .score-display, .combo-display, .accuracy-display {
+                font-size: 16px;
+            }
+            
+            .hp-bar {
+                width: 150px;
+                height: 16px;
+            }
+            
+            .hp-label, .hp-text {
+                font-size: 14px;
+            }
+            
+            .game-title {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            
+            .game-subtitle {
+                font-size: 18px;
+                margin-bottom: 30px;
+            }
+            
+            .main-btn {
+                padding: 15px 30px;
+                font-size: 20px;
+                margin: 15px;
+            }
+            
+            .song-list {
+                grid-template-columns: 1fr;
+                max-height: 300px;
+                margin: 15px 0;
+            }
+            
+            .song-item {
+                padding: 12px;
+            }
+            
+            .song-title {
+                font-size: 16px;
+            }
+            
+            .song-info {
+                font-size: 12px;
+            }
+            
+            .level-selection-title {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+            
+            .level-buttons-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+            
+            .level-btn {
+                padding: 18px 25px;
+                font-size: 16px;
+                min-width: 200px;
+                max-width: 250px;
+            }
+            
+            .lane {
+                width: 80px;
+            }
+            
+            .note {
+                width: 60px;
+                height: 60px;
+                font-size: 35px;
+                left: 10px;
+            }
+            
+            .target-area {
+                height: 70px;
+                bottom: 120px;
+            }
+            
+            .arrow-target {
+                font-size: 35px;
+            }
+            
+            .judgment {
+                font-size: 28px;
+            }
+            
+            .controls-info {
+                display: none; /* スマホではキーボード操作説明を非表示 */
+            }
+            
+            /* タッチコントロール関連は削除済み */
+        }
+
+        /* 極小スマートフォン */
+        @media screen and (max-width: 480px) {
+            .header {
+                padding: 8px;
+            }
+            
+            .score-display, .combo-display, .accuracy-display {
+                font-size: 14px;
+            }
+            
+            .hp-bar {
+                width: 120px;
+                height: 14px;
+            }
+            
+            .game-title {
+                font-size: 24px;
+            }
+            
+            .game-subtitle {
+                font-size: 16px;
+            }
+            
+            .main-btn {
+                padding: 12px 24px;
+                font-size: 18px;
+            }
+            
+            .level-btn {
+                padding: 15px 20px;
+                font-size: 14px;
+                min-width: 180px;
+            }
+            
+            .lane {
+                width: 70px;
+            }
+            
+            .note {
+                width: 50px;
+                height: 50px;
+                font-size: 30px;
+                left: 10px;
+            }
+            
+            .target-area {
+                height: 60px;
+                bottom: 140px;
+            }
+            
+            .arrow-target {
+                font-size: 30px;
+            }
+            
+            /* タッチコントロール関連は削除済み */
+            
+            .judgment {
+                font-size: 24px;
+            }
+        }
+
+        /* ランドスケープモード（横向き）対応 */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 5px 15px;
+            }
+            
+            .screen {
+                padding: 20px;
+                height: calc(100vh - 80px);
+            }
+            
+            .game-title {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            .game-subtitle {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            
+            .main-btn {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin: 10px;
+            }
+            
+            .level-buttons-container {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .level-btn {
+                padding: 12px 18px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+            
+            /* タッチコントロール関連は削除済み */
+            
+            .target-area {
+                bottom: 80px;
+                height: 50px;
+            }
+        }
 
         .controls-info {
             position: absolute;
@@ -509,26 +824,26 @@
         }
 
         .game-over-screen {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(183, 28, 28, 0.9));
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95), rgba(15, 52, 96, 0.9));
             backdrop-filter: blur(10px);
         }
 
         .game-over-title {
             font-size: 64px;
             font-weight: bold;
-            color: #ff4444;
-            text-shadow: 0 0 30px #ff4444;
+            color: #00ffff;
+            text-shadow: 0 0 30px #00ffff;
             margin-bottom: 30px;
             animation: gameOverPulse 2s ease-in-out infinite alternate;
         }
 
         @keyframes gameOverPulse {
             from { 
-                text-shadow: 0 0 30px #ff4444; 
+                text-shadow: 0 0 30px #00ffff; 
                 transform: scale(1.0);
             }
             to { 
-                text-shadow: 0 0 50px #ff4444, 0 0 60px #ff4444; 
+                text-shadow: 0 0 50px #00ffff, 0 0 60px #00ffff; 
                 transform: scale(1.05);
             }
         }
@@ -538,7 +853,7 @@
             border-radius: 15px;
             padding: 30px;
             margin: 30px 0;
-            border: 2px solid #ff4444;
+            border: 2px solid #00ffff;
         }
 
         .game-over-stat {
@@ -577,14 +892,25 @@
 
         <!-- トップスクリーン -->
         <div class="screen top-screen" id="top-screen">
-            <div class="game-title">DDR RHYTHM GAME</div>
+            <div class="game-title">HEN-TAI STEP CLIMAX</div>
+            <img src="assets/images/hentaigazou.png" alt="HEN-TAI STEP CLIMAX" class="top-image">
             <div class="game-subtitle">音楽に合わせて矢印キーをタイミングよく押そう！</div>
-            <button class="main-btn" onclick="showLevelSelect()">ゲームスタート</button>
+            <button class="main-btn" onclick="showSongSelect()">ゲームスタート</button>
+        </div>
+
+        <!-- 楽曲選択スクリーン -->
+        <div class="screen level-select-screen hidden" id="song-select-screen">
+            <div class="level-selection-title">楽曲選択</div>
+            <div class="game-subtitle">プレイする楽曲を選択してください</div>
+            <div class="song-list" id="song-list-container">
+                <!-- 楽曲リストはJavaScriptで動的に生成 -->
+            </div>
+            <button class="main-btn" onclick="showLevelSelect()">次へ</button>
         </div>
 
         <!-- レベル選択スクリーン -->
         <div class="screen level-select-screen hidden" id="level-select-screen">
-            <div class="level-selection-title">hentaisong.mp3</div>
+            <div class="level-selection-title" id="selected-song-title">楽曲を選択してください</div>
             <div class="game-subtitle">難易度を選択してください</div>
             <div class="level-buttons-container">
                 <div class="level-btn easy" onclick="selectLevelAndStart('easy')">
@@ -600,6 +926,7 @@
                     <div class="level-description">上級者向け</div>
                 </div>
             </div>
+            <button class="main-btn" onclick="backToSongSelect()">楽曲選択に戻る</button>
         </div>
 
         <div class="game-area hidden" id="game-area">
@@ -666,9 +993,12 @@
         </div>
 
         <div class="controls-info">
-            <div>操作: ← ↓ ↑ → キーを使用</div>
+            <div>PC: ← ↓ ↑ → キーを使用</div>
+            <div>スマホ: 矢印エリアをタップ</div>
             <div>ESC: メニューに戻る</div>
         </div>
+
+        <!-- タッチコントロールは削除 - ターゲットエリア直接タップを使用 -->
     </div>
 
     <audio id="game-audio" preload="auto"></audio>
