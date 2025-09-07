@@ -72,17 +72,16 @@ class DDRGame {
                 path: 'assets/audio/hentaisong.mp3',
                 bpm: 140,
                 duration: 180
+            },
+            {
+                id: 2,
+                filename: 'hentaisong02.mp3',
+                title: '異次元ブレイクアラーム',
+                artist: 'Unknown Artist',
+                path: 'assets/audio/hentaisong02.mp3',
+                bpm: 150,
+                duration: 180
             }
-            // 新しい曲を追加する場合の例：
-            // {
-            //     id: 2,
-            //     filename: 'newsong.mp3',
-            //     title: '新しい曲',
-            //     artist: 'アーティスト名',
-            //     path: 'assets/audio/newsong.mp3',
-            //     bpm: 128,
-            //     duration: 200
-            // }
         ];
         
         this.selectedSong = null;
