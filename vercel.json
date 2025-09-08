@@ -3,9 +3,11 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" }
   ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/((?!api/|_next/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
@@ -16,4 +18,3 @@
     }
   ]
 }
-
