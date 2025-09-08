@@ -66,7 +66,7 @@ class DDRGame {
         this.songList = [
             {
                 id: 1,
-                filename: 'hentaisong.mp3',
+                filename: '3:05の変態たち feat.眠気',
                 title: '3:05の変態たち feat. 眠気',
                 artist: 'believeee',
                 path: 'assets/audio/hentaisong.mp3',
