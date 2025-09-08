@@ -777,7 +777,6 @@ class DDRGame {
         
         this.spawnNotes();
         this.updateNotes();
-        this.cleanupNotes();
         
         requestAnimationFrame(() => this.gameLoop());
     }
@@ -829,79 +828,36 @@ class DDRGame {
     }
     
     updateNotes() {
-        // パフォーマンス最適化：バッチ処理とログ削減
         const targetAreas = document.querySelectorAll('.target-area');
-        let notesToRemove = [];
-        
-        this.activeNotes.forEach((note, index) => {
-            if (note.element && !note.hit && !note.passedCheck) {
-                const noteRect = note.element.getBoundingClientRect();
-                
-                if (targetAreas[note.lane]) {
-                    const targetRect = targetAreas[note.lane].getBoundingClientRect();
-                    
-                    // より寛大な通過判定：ターゲットエリアの下端を通過
-                    const passThreshold = targetRect.bottom + 20;
-                    const notePassed = noteRect.top > passThreshold;
-                    
-                    if (notePassed) {
-                        note.hit = true;
-                        note.passedCheck = true;
-                        this.processMiss();
-                        
-                        // ノーツを削除対象に追加
-                        notesToRemove.push(note);
-                    }
-                }
+        if (targetAreas.length === 0) return;
+
+        const notesToCheck = [...this.activeNotes];
+
+        notesToCheck.forEach(note => {
+            if (note.hit) {
+                return;
             }
-        });
-        
-        // バッチでノーツを削除
-        notesToRemove.forEach(note => {
-            if (note.element) {
-                note.element.remove();
-            }
-        });
-        
-        // アクティブノーツリストから除去
-        this.activeNotes = this.activeNotes.filter(note => !note.passedCheck);
-    }
-    
-    cleanupNotes() {
-        const targetAreas = document.querySelectorAll('.target-area');
-        
-        this.activeNotes = this.activeNotes.filter(note => {
+
             if (note.element) {
                 const noteRect = note.element.getBoundingClientRect();
                 const targetRect = targetAreas[note.lane] ? targetAreas[note.lane].getBoundingClientRect() : null;
-                
-                // ノーツがターゲットエリアを通過した場合（下端+100pxを基準）
-                let missThreshold = window.innerHeight;
+
                 if (targetRect) {
-                    missThreshold = targetRect.bottom + 100; // ターゲット下端から100px下
-                }
-                
-                if (noteRect.top > missThreshold) {
-                    if (!note.hit) {
-                        console.log('Note passed target area without input - MISS! Lane:', note.lane, 'Direction:', this.getArrowForLane(note.lane));
+                    const passThreshold = targetRect.bottom + 20;
+                    if (noteRect.top > passThreshold) {
+                        console.log(`[Miss] Note passed. Time: ${this.audio.currentTime}, Lane: ${note.lane}`);
+                        note.hit = true;
                         this.processMiss();
+                        note.element.remove();
                     }
-                    note.element.remove();
-                    return false;
-                }
-                
-                // さらに厳しく：ノーツがターゲットエリアより下にある場合も判定
-                if (targetRect && !note.hit && noteRect.top > targetRect.bottom + 50) {
-                    console.log('Note passed judgment zone - MISS! Lane:', note.lane);
-                    note.hit = true; // 重複Miss防止
-                    this.processMiss();
-                    note.element.remove();
-                    return false;
                 }
             }
-            return true;
         });
+
+        this.activeNotes = this.activeNotes.filter(note => !note.hit);
     }
+    
+    
     
     getArrowForLane(laneIndex) {
         const arrows = ['←', '↓', '↑', '→'];
