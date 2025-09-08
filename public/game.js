@@ -13,8 +13,10 @@ class DDRGame {
         this.totalNotes = 0;
         this.hitNotes = 0;
         this.perfectHits = 0;
+        this.greatHits = 0;
         this.goodHits = 0;
         this.niceHits = 0;
+        this.badHits = 0;
         this.missHits = 0;
         this.hp = 100;
         this.maxHp = 100;
@@ -357,6 +359,13 @@ class DDRGame {
                 this.combo++;
                 this.hp = Math.min(this.maxHp, this.hp + 3);
                 break;
+            case 'great':
+                this.greatHits++;
+                points = 800;
+                color = 'great';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 2);
+                break;
             case 'good':
                 this.goodHits++;
                 points = 600;
@@ -365,10 +374,17 @@ class DDRGame {
                 this.hp = Math.min(this.maxHp, this.hp + 1);
                 break;
             case 'nice':
-                this.niceHits = (this.niceHits || 0) + 1;
+                this.niceHits++;
                 points = 300;
                 color = 'nice';
                 this.combo++;
+                break;
+            case 'bad':
+                this.badHits++;
+                points = 100;
+                color = 'bad';
+                this.combo = 0;
+                this.hp -= 1;
                 break;
         }
         
@@ -527,8 +543,10 @@ class DDRGame {
         this.maxCombo = 0;
         this.hitNotes = 0;
         this.perfectHits = 0;
+        this.greatHits = 0;
         this.goodHits = 0;
         this.niceHits = 0;
+        this.badHits = 0;
         this.missHits = 0;
         this.hp = this.maxHp; // HPを必ず最大値にリセット
         this.activeNotes = [];
@@ -995,22 +1013,13 @@ class DDRGame {
     }
     
     getPositionTimingWindow(positionDiff) {
-        // さらに厳しい4段階判定（ピクセル単位での判定）
-        console.log('Checking position diff:', positionDiff);
-        if (positionDiff <= 15) {
-            console.log('-> PERFECT');
-            return 'perfect';
-        }
-        if (positionDiff <= 30) {
-            console.log('-> GOOD');  
-            return 'good';
-        }
-        if (positionDiff <= 50) {
-            console.log('-> NICE');
-            return 'nice';
-        }
-        console.log('-> MISS (position diff too large)');
-        return null; // 範囲外はMissとして処理
+        // 5段階判定（ピクセル単位）
+        if (positionDiff <= 15) return 'perfect';
+        if (positionDiff <= 30) return 'great';
+        if (positionDiff <= 50) return 'good';
+        if (positionDiff <= 75) return 'nice';
+        if (positionDiff <= 100) return 'bad';
+        return null; // 範囲外はMiss
     }
     
     processTimingHit(timing) {
@@ -1028,6 +1037,13 @@ class DDRGame {
                 this.combo++;
                 this.hp = Math.min(this.maxHp, this.hp + 3); // Perfect で HP回復
                 break;
+            case 'great':
+                this.greatHits++;
+                points = 800;
+                color = 'great';
+                this.combo++;
+                this.hp = Math.min(this.maxHp, this.hp + 2);
+                break;
             case 'good':
                 this.goodHits++;
                 points = 600;
@@ -1036,11 +1052,19 @@ class DDRGame {
                 this.hp = Math.min(this.maxHp, this.hp + 1); // Good で HP少し回復
                 break;
             case 'nice':
-                this.niceHits = (this.niceHits || 0) + 1;
+                this.niceHits++;
                 points = 300;
                 color = 'nice';
                 this.combo++;
                 // Niceは HP変化なし
+                break;
+            case 'bad':
+                this.badHits++;
+                points = 100;
+                color = 'bad';
+                breakCombo = true;
+                this.combo = 0;
+                this.hp -= 1;
                 break;
         }
         
@@ -1211,16 +1235,16 @@ class DDRGame {
         
         // 統計データを更新
         const accuracy = this.hitNotes > 0 ? 
-            ((this.perfectHits + this.goodHits * 0.8 + (this.niceHits || 0) * 0.5) / this.hitNotes) * 100 : 0;
+            ((this.perfectHits + (this.greatHits || 0) * 0.8 + this.goodHits * 0.6 + (this.niceHits || 0) * 0.4 + (this.badHits || 0) * 0.2) / this.hitNotes) * 100 : 0;
         
         document.getElementById('final-score').textContent = Math.floor(this.score);
         document.getElementById('final-combo').textContent = this.maxCombo;
         document.getElementById('final-accuracy').textContent = accuracy.toFixed(1) + '%';
         document.getElementById('final-perfect').textContent = this.perfectHits;
-        document.getElementById('final-great').textContent = this.goodHits; // Great→Good
-        document.getElementById('final-good').textContent = this.niceHits || 0; // Good→Nice
-        document.getElementById('final-nice').textContent = 0; // 使用しない
-        document.getElementById('final-bad').textContent = 0; // 使用しない
+        document.getElementById('final-great').textContent = this.greatHits;
+        document.getElementById('final-good').textContent = this.goodHits;
+        document.getElementById('final-nice').textContent = this.niceHits;
+        document.getElementById('final-bad').textContent = this.badHits;
         document.getElementById('final-miss').textContent = this.missHits;
     }
     
@@ -1268,8 +1292,10 @@ class DDRGame {
         this.maxCombo = 0;
         this.hitNotes = 0;
         this.perfectHits = 0;
+        this.greatHits = 0;
         this.goodHits = 0;
         this.niceHits = 0;
+        this.badHits = 0;
         this.missHits = 0;
         this.hp = this.maxHp; // HPを最大値にリセット
         this.notes = [];
