@@ -777,7 +777,7 @@ class DDRGame {
         
         this.spawnNotes();
         this.updateNotes();
-        this.cleanupNotes();
+        // this.cleanupNotes();
         
         requestAnimationFrame(() => this.gameLoop());
     }
