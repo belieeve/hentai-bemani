@@ -777,7 +777,7 @@ class DDRGame {
         
         this.spawnNotes();
         this.updateNotes();
-        // this.cleanupNotes();
+        this.cleanupNotes();
         
         requestAnimationFrame(() => this.gameLoop());
     }
@@ -1240,12 +1240,12 @@ class DDRGame {
         document.getElementById('final-score').textContent = Math.floor(this.score);
         document.getElementById('final-combo').textContent = this.maxCombo;
         document.getElementById('final-accuracy').textContent = accuracy.toFixed(1) + '%';
-        document.getElementById('final-perfect').textContent = this.perfectHits;
-        document.getElementById('final-great').textContent = this.greatHits;
-        document.getElementById('final-good').textContent = this.goodHits;
-        document.getElementById('final-nice').textContent = this.niceHits;
-        document.getElementById('final-bad').textContent = this.badHits;
-        document.getElementById('final-miss').textContent = this.missHits;
+        document.getElementById('final-perfect').textContent = this.perfectHits || 0;
+        document.getElementById('final-great').textContent = this.greatHits || 0;
+        document.getElementById('final-good').textContent = this.goodHits || 0;
+        document.getElementById('final-nice').textContent = this.niceHits || 0;
+        document.getElementById('final-bad').textContent = this.badHits || 0;
+        document.getElementById('final-miss').textContent = this.missHits || 0;
     }
     
     showResults() {
@@ -1261,7 +1261,19 @@ class DDRGame {
         else if (accuracy >= 60) rank = 'C';
         else if (accuracy >= 50) rank = 'D';
         
-        alert(`ゲーム終了！\n\nスコア: ${Math.floor(this.score)}\n最大コンボ: ${this.maxCombo}\n正確度: ${accuracy.toFixed(1)}%\nランク: ${rank}\n\nPerfect: ${this.perfectHits}\nGreat: ${this.greatHits}\nGood: ${this.goodHits}\nNice: ${this.niceHits || 0}\nBad: ${this.badHits || 0}\nMiss: ${this.missHits}`);
+        alert(`ゲーム終了！
+
+スコア: ${Math.floor(this.score)}
+最大コンボ: ${this.maxCombo}
+正確度: ${accuracy.toFixed(1)}%
+ランク: ${rank}
+
+Perfect: ${this.perfectHits || 0}
+Great: ${this.greatHits || 0}
+Good: ${this.goodHits || 0}
+Nice: ${this.niceHits || 0}
+Bad: ${this.badHits || 0}
+Miss: ${this.missHits || 0}`);
         
         this.returnToMenu();
     }
